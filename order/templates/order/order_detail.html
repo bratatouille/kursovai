@@ -1,0 +1,188 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="min-h-screen py-10 flex justify-center items-start px-4 sm:px-6 lg:px-8">
+    <div class="max-w-4xl w-full">
+        <!-- Заголовок -->
+        <div class="mb-8">
+            <h1 class="text-3xl font-bold text-black dark:text-white mb-2">Заказ #{{ order.order_number }}</h1>
+            <div class="flex items-center gap-4">
+                <span class="px-3 py-1 rounded-full text-sm font-medium
+                    {% if order.status == 'pending' %}bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-300
+                    {% elif order.status == 'confirmed' %}bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-300
+                    {% elif order.status == 'processing' %}bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-300
+                    {% elif order.status == 'shipped' %}bg-orange-100 dark:bg-orange-900 text-orange-800 dark:text-orange-300
+                    {% elif order.status == 'delivered' %}bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-300
+                    {% elif order.status == 'cancelled' %}bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-300
+                    {% endif %}">
+                    {{ order.get_status_display }}
+                </span>
+                <span class="text-[#b0b0b0] dark:text-[#7a8599]">{{ order.created_at|date:"d.m.Y H:i" }}</span>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Основная информация -->
+            <div class="lg:col-span-2 space-y-8">
+                <!-- Товары -->
+                <div class="bg-white dark:bg-[#28303F] rounded-2xl p-8 shadow-lg">
+                    <h2 class="text-xl font-bold text-black dark:text-white mb-6">Товары в заказе</h2>
+                    <div class="space-y-4">
+                        {% for item in order_items %}
+                        <div class="flex items-center gap-4 py-4 border-b border-[#e5e7eb] dark:border-[#363b4a] last:border-b-0">
+                            <div class="w-16 h-16 bg-[#e5e7eb] dark:bg-[#1a2230] rounded-lg flex items-center justify-center">
+                                {% if item.product.image %}
+                                    <img src="{{ item.product.image.url }}" alt="{{ item.product_name }}" class="w-full h-full object-cover rounded-lg">
+                                {% else %}
+                                    <span class="text-[#b0b0b0] dark:text-[#7a8599] text-xs">Фото</span>
+                                {% endif %}
+                            </div>
+                            <div class="flex-1">
+                                <div class="text-black dark:text-white font-medium">{{ item.product_name }}</div>
+                                <div class="text-[#b0b0b0] dark:text-[#7a8599] text-sm">{{ item.quantity }} шт. × {{ item.product_price|floatformat:0 }} ₽</div>
+                            </div>
+                            <div class="text-black dark:text-white font-bold">
+                                {{ item.total_price|floatformat:0 }} ₽
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Адрес доставки -->
+                <div class="bg-white dark:bg-[#28303F] rounded-2xl p-8 shadow-lg">
+                    <h2 class="text-xl font-bold text-black dark:text-white mb-6">Адрес доставки</h2>
+                    <div class="text-black dark:text-white">
+                        <div class="mb-2"><strong>{{ order.first_name }} {{ order.last_name }}</strong></div>
+                        <div class="mb-2">{{ order.full_address }}</div>
+                        <div class="mb-2">Телефон: {{ order.phone }}</div>
+                        <div>Email: {{ order.email }}</div>
+                    </div>
+                </div>
+
+                <!-- История статусов -->
+                {% if status_history %}
+                <div class="bg-white dark:bg-[#28303F] rounded-2xl p-8 shadow-lg">
+                    <h2 class="text-xl font-bold text-black dark:text-white mb-6">История заказа</h2>
+                    <div class="space-y-4">
+                        {% for history in status_history %}
+                        <div class="flex items-start gap-4">
+                            <div class="w-3 h-3 rounded-full bg-[#7a85ff] mt-2 flex-shrink-0"></div>
+                            <div class="flex-1">
+                                <div class="text-black dark:text-white font-medium">{{ history.get_status_display }}</div>
+                                {% if history.comment %}
+                                    <div class="text-[#b0b0b0] dark:text-[#7a8599] text-sm">{{ history.comment }}</div>
+                                {% endif %}
+                                <div class="text-[#b0b0b0] dark:text-[#7a8599] text-xs">{{ history.created_at|date:"d.m.Y H:i" }}</div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Сводка заказа -->
+            <div class="lg:col-span-1">
+                <div class="bg-white dark:bg-[#28303F] rounded-2xl p-8 shadow-lg sticky top-20">
+                    <h2 class="text-xl font-bold text-black dark:text-white mb-6">Сводка заказа</h2>
+                    
+                    <div class="space-y-3 mb-6">
+                        <div class="flex justify-between text-[#b0b0b0] dark:text-[#7a8599]">
+                            <span>Сумма товаров:</span>
+                            <span>{{ order.subtotal|floatformat:0 }} ₽</span>
+                        </div>
+                        
+                        {% if order.discount_amount > 0 %}
+                        <div class="flex justify-between text-green-600 dark:text-green-400">
+                            <span>Скидка{% if order.promocode_used %} ({{ order.promocode_used }}){% endif %}:</span>
+                            <span>-{{ order.discount_amount|floatformat:0 }} ₽</span>
+                        </div>
+                        {% endif %}
+                        
+                        <hr class="border-[#e5e7eb] dark:border-[#363b4a]">
+                        
+                        <div class="flex justify-between text-black dark:text-white text-lg font-bold">
+                            <span>Итого:</span>
+                            <span>{{ order.total_amount|floatformat:0 }} ₽</span>
+                        </div>
+                    </div>
+                    
+                    <div class="space-y-3 text-sm">
+                        <div class="flex justify-between">
+                            <span class="text-[#b0b0b0] dark:text-[#7a8599]">Способ оплаты:</span>
+                            <span class="text-black dark:text-white">{{ order.get_payment_method_display }}</span>
+                        </div>
+                        
+                        {% if order.comment %}
+                        <div>
+                            <div class="text-[#b0b0b0] dark:text-[#7a8599] mb-1">Комментарий:</div>
+                            <div class="text-black dark:text-white">{{ order.comment }}</div>
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mt-6">
+                        <a href="{% url 'users:profile' %}" 
+                           class="w-full bg-[#7a85ff] hover:bg-[#4b1bb3] text-white py-3 rounded-xl text-center font-bold transition-colors block">
+                            Все заказы
+                        </a>
+                        {% if order.status == 'pending' or order.status == 'processing' %}
+                        <button id="cancel-order-btn" type="button"
+                            class="w-full mt-3 bg-red-600 hover:bg-red-700 text-white py-3 rounded-xl text-center font-bold transition-colors block">
+                            Отменить заказ
+                        </button>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if order.status == 'pending' or order.status == 'processing' %}
+<script>
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+document.getElementById('cancel-order-btn').addEventListener('click', async function() {
+    if (!confirm('Вы уверены, что хотите отменить этот заказ?')) return;
+    const btn = this;
+    btn.disabled = true;
+    btn.textContent = 'Отмена...';
+    try {
+        const response = await fetch(`/orders/{{ order.id }}/cancel/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken'),
+                'Content-Type': 'application/json',
+            },
+        });
+        const data = await response.json();
+        if (data.success) {
+            location.reload();
+        } else {
+            alert(data.error || 'Не удалось отменить заказ');
+            btn.disabled = false;
+            btn.textContent = 'Отменить заказ';
+        }
+    } catch (error) {
+        alert('Ошибка при отмене заказа. Попробуйте позже.');
+        btn.disabled = false;
+        btn.textContent = 'Отменить заказ';
+    }
+});
+</script>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,11 @@
+@import "tailwindcss/preflight";
+@tailwind utilities;
+
+/* Custom styles (добавляй только если нужно что-то особенное) */
+
+@import 'forms.css';
+
+/* Custom styles */
+body {
+    @apply bg-gray-100 dark:bg-[#1E242E] text-gray-900 dark:text-white;
+} 

@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+
+
+<div class="dark:text-white min-h-screen">
+    <div class="max-w-6xl mx-auto py-10">
+        <!-- О компании -->
+        <h1 class="text-3xl font-bold mb-6">О компании</h1>
+        <div class="bg-gray-100 dark:bg-gray-800 rounded-xl p-6 mb-8">
+            <p class="mb-8 dark:text-gray-200 text-gray-800">
+                TechStore – ведущий поставщик компьютерной техники и комплектующих в России. Мы специализируемся на продаже и сборке высококачественных компьютеров, предлагая широкий ассортимент товаров от ведущих производителей. Наша команда профессионалов обеспечивает индивидуальный подход к каждому клиенту, помогая подобрать оптимальное решение для любых задач.
+            </p>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
+                <div class="bg-gray-200 dark:bg-gray-700 rounded-lg p-6 flex flex-col items-center">
+                    <div class="text-3xl font-bold mb-2 dark:text-white text-gray-900">10+</div>
+                    <div class="text-gray-500 dark:text-gray-400 text-sm text-center">Лет на рынке</div>
+                </div>
+                <div class="bg-gray-200 dark:bg-gray-700 rounded-lg p-6 flex flex-col items-center">
+                    <div class="text-3xl font-bold mb-2 dark:text-white text-gray-900">50k+</div>
+                    <div class="text-gray-500 dark:text-gray-400 text-sm text-center">Довольных клиентов</div>
+                </div>
+                <div class="bg-gray-200 dark:bg-gray-700 rounded-lg p-6 flex flex-col items-center">
+                    <div class="text-3xl font-bold mb-2 dark:text-white text-gray-900">24/7</div>
+                    <div class="text-gray-500 dark:text-gray-400 text-sm text-center">Поддержка клиентов</div>
+                </div>
+                <div class="bg-gray-200 dark:bg-gray-700 rounded-lg p-6 flex flex-col items-center">
+                    <div class="text-3xl font-bold mb-2 dark:text-white text-gray-900">99%</div>
+                    <div class="text-gray-500 dark:text-gray-400 text-sm text-center">Успешных доставок</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Наш офис -->
+        <h2 class="text-2xl font-bold mb-6">Наш офис</h2>
+        <div class="bg-gray-100 dark:bg-gray-800 rounded-xl p-6 mb-8">
+            <div class="mb-4">
+                <div class="font-semibold mb-2">Контактная информация</div>
+                <div class="text-gray-800 dark:text-gray-200">
+                    Адрес: г. Таганрог, ул. Дачная, д.119<br>
+                    Телефон: +7 (999) 999-99-99<br>
+                    Email: info@techstore.ru<br>
+                    Режим работы: Пн-Вс с 10:00 до 22:00
+                </div>
+            </div>
+            <div>
+                <div class="font-semibold mb-2">Как добраться</div>
+                <div class="text-gray-700 dark:text-gray-300">
+                    От остановки "Центральная" автобусы №1, 2, 3. Время в пути 10 минут. Бесплатная парковка для клиентов.
+                </div>
+            </div>
+        </div>
+        <h2 class="text-2xl font-bold mb-6">Мы на карте</h2>
+        <div class="bg-gray-100 dark:bg-gray-800 rounded-xl  mb-8">
+            <div id="map" class="mb-4 ">
+               <script type="text/javascript" charset="utf-8" async src="https://api-maps.yandex.ru/services/constructor/1.0/js/?um=constructor%3A1c97141374feb291e4cedda4315dd4baa75007952b594b8dd2f36bf67296169e&amp;width=w-full&amp;height=400&amp;lang=ru_RU&amp;scroll=true"></script>
+            </div>
+        </div>
+         
+
+        <!-- Наша команда -->
+        <h2 class="text-2xl font-bold mb-6">Наша команда</h2>
+        <div class="bg-gray-100 dark:bg-gray-800 rounded-xl p-6 flex flex-col md:flex-row gap-6">
+            <div class="flex-1 flex flex-col items-center">
+                <div class="w-36 h-36 bg-gray-200 dark:bg-gray-700 rounded-full flex items-center justify-center text-gray-400 text-xl mb-4">
+                    <img src="/media/man.png" alt="Человечек1" class="w-full rounded-lg">
+
+                </div>
+                <div class="font-semibold dark:text-white text-gray-900">Щукин Семён</div>
+                <div class="text-gray-500 dark:text-gray-400 text-sm">Генеральный директор</div>
+            </div>
+            <div class="flex-1 flex flex-col items-center">
+                <div class="w-36 h-36 bg-gray-200 dark:bg-gray-700 rounded-full flex items-center justify-center text-gray-400 text-xl mb-4">
+                    <img src="/media/woman.png" alt="Человечек2" class="w-full rounded-lg">
+
+                </div>
+                <div class="font-semibold dark:text-white text-gray-900">Мария Иванова</div>
+                <div class="text-gray-500 dark:text-gray-400 text-sm">Технический директор</div>
+            </div>
+            <div class="flex-1 flex flex-col items-center">
+                <div class="w-36 h-36 bg-gray-200 dark:bg-gray-700 rounded-full flex items-center justify-center text-gray-400 text-xl mb-4">
+                    <img src="/media/man.png" alt="Человечек3" >
+                </div>
+                <div class="font-semibold dark:text-white text-gray-900">Дмитрий Сидоров</div>
+                <div class="text-gray-500 dark:text-gray-400 text-sm">Руководитель сервиса</div>
+            </div>
+            <div class="flex-1 flex flex-col items-center">
+                <div class="w-36 h-36 bg-gray-200 dark:bg-gray-700 rounded-full flex items-center justify-center text-gray-400 text-xl mb-4">
+                    <img src="/media/woman.png" alt="Человечек4" class="w-full rounded-lg">
+                </div>
+                <div class="font-semibold dark:text-white text-gray-900">Елена Козлова</div>
+                <div class="text-gray-500 dark:text-gray-400 text-sm">Главный бухгалтер</div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

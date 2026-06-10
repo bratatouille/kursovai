@@ -1,0 +1,63 @@
+<div class="bg-white dark:bg-[#28303F] rounded-2xl overflow-hidden relative flex flex-col shadow-lg">
+  <!-- Иконка избранного -->
+  <button type="button" class="absolute -top-0 -right-0 z-20 text-2xl p-1 bg-white dark:bg-[#1a2230] rounded-full shadow-lg wishlist-btn {% if product.id in wishlist_product_ids %}text-purple-500{% else %}text-black dark:text-white{% endif %}" data-product-slug="{{ product.slug }}" aria-label="Избранное">
+    <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" fill="{% if product.id in wishlist_product_ids %}currentColor{% else %}none{% endif %}" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+    </svg>
+  </button>
+
+  <!-- Бейдж скидки -->
+  {% if product.discount > 0 %}
+  <div class="absolute top-3 left-3 z-20 bg-red-500 text-white text-sm font-bold px-3 py-1 rounded-full">
+    -{{ product.discount }}%
+  </div>
+  {% endif %}
+
+  <a href="/catalog/{{ product.category.product_line.slug }}/{{ product.category.slug }}/{{ product.slug }}/" class="block">
+    <!-- Картинка -->
+    <div class="bg-[#e5e7eb] dark:bg-[#23283a] flex items-center justify-center w-full h-[220px] text-[#b0b0b0] dark:text-[#7a8599] text-3xl font-bold rounded-t-2xl">
+      {% if product.image %}
+        {% with secondary_img=product.secondary_image %}
+        <img src="{{ product.image.url }}" 
+             alt="{{ product.name }}" 
+             class="w-full h-full object-cover rounded-t-2xl product-card-image"
+             data-main-image="{{ product.image.url }}"
+             {% if secondary_img %}data-secondary-image="{{ secondary_img.image.url }}"{% endif %}>
+        {% endwith %}
+      {% else %}
+        300 × 300
+      {% endif %}
+    </div>
+  </a>
+  
+  <div class="p-6 flex-1 flex flex-col">
+    <a href="/catalog/{{ product.category.product_line.slug }}/{{ product.category.slug }}/{{ product.slug }}/" class="block">
+      <div class="text-black dark:text-white font-bold text-xl mb-3 hover:text-purple-400 transition-colors truncate">{{ product.name }}</div>
+    </a>
+    
+    <div class="flex justify-between items-center mb-4">
+      <!-- Цена с учетом скидки -->
+      <div class="flex flex-col">
+        {% if product.discount > 0 %}
+          <!-- Цена со скидкой -->
+          <span class="text-black dark:text-white text-lg font-bold">{{ product.formatted_price }}</span>
+          <span class="text-[#b0b0b0] dark:text-[#7a8599] text-sm line-through">{{ product.price }} ₽</span>
+        {% else %}
+          <!-- Обычная цена -->
+          <span class="text-black dark:text-white text-lg font-bold">{{ product.price }} ₽</span>
+        {% endif %}
+      </div>
+      <span class="text-[#b0b0b0] dark:text-[#7a8599] text-base">
+        {% if product.stock %}
+          В наличии: {{ product.stock }} шт.
+        {% else %}
+          <span class="text-red-500">Нет в наличии</span>
+        {% endif %}
+      </span>
+    </div>
+    
+    <button type="button" class="cart-btn bg-[#7a85ff] hover:bg-[#4b1bb3] text-white w-full py-3 rounded-xl text-lg font-semibold z-20 relative transition-colors mt-auto" data-product-slug="{{ product.slug }}" {% if not product.stock %}disabled style="opacity:0.5;cursor:not-allowed;"{% endif %}>
+      {% if product.id in cart_product_ids %}Убрать из корзины{% else %}В корзину{% endif %}
+    </button>
+  </div>
+</div>

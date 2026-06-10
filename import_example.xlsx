@@ -1,0 +1,7 @@
+| name                                 | category        | description                                              | price | stock | sku         | image                        | brand      |
+|--------------------------------------|-----------------|----------------------------------------------------------|-------|-------|-------------|------------------------------|------------|
+| Процессор Intel Core i5-12400F       | комплектующие   | 6 ядер, 12 потоков, частота до 4.4 ГГц                   | 18500 | 10    | CPU-12400F  | intel_i5_12400f.jpg          | Intel      |
+| ОЗУ Kingston Fury 16GB DDR4          | комплектующие   | 3200 МГц, CL16, 2x8GB                                    | 6500  | 25    | RAM-KF16D4  | kingston_fury_16gb.jpg       | Kingston   |
+| SSD Samsung 970 EVO Plus 1TB         | комплектующие   | NVMe, скорость чтения до 3500 МБ/с                       | 9500  | 15    | SSD-970EVO  | samsung_970evo_1tb.jpg       | Samsung    |
+| Материнская плата ASUS PRIME B660M-A | комплектующие   | mATX, LGA1700, DDR4, 4 слота памяти                      | 12000 | 8     | MB-B660MA   | asus_prime_b660m-a.jpg       | ASUS       |
+| Блок питания Corsair RM750x 750W     | комплектующие   | 80+ Gold, полностью модульный, тихий вентилятор          | 11000 | 12    | PSU-RM750X   | corsair_rm750x_750w.jpg      | Corsair    | 

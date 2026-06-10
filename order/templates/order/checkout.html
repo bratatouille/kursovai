@@ -1,0 +1,232 @@
+{% extends 'base.html' %}
+{% load order_extras %}
+{% block content %}
+<div class="min-h-screen py-10">
+    <div class="max-w-6xl mx-auto">
+        <h1 class="text-3xl font-bold text-black dark:text-white mb-8">Оформление заказа</h1>
+        
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Форма заказа -->
+            <div class="lg:col-span-2">
+                <form id="checkout-form" class="bg-white dark:bg-[#28303F] rounded-2xl p-8 shadow-lg">
+                    {% csrf_token %}
+                    
+                    <!-- Контактная информация -->
+                    <div class="mb-8">
+                        <h2 class="text-xl font-bold text-black dark:text-white mb-4">Контактная информация</h2>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-black dark:text-white text-sm font-medium mb-2">Имя *</label>
+                                <input type="text" name="first_name" value="{{ user_data.first_name }}" required
+                                       class="w-full px-4 py-2 rounded bg-[#e5e7eb] dark:bg-[#1a2230] text-black dark:text-white border border-[#e5e7eb] dark:border-[#363b4a] focus:outline-none focus:border-[#7a85ff]">
+                            </div>
+                            <div>
+                                <label class="block text-black dark:text-white text-sm font-medium mb-2">Фамилия *</label>
+                                <input type="text" name="last_name" value="{{ user_data.last_name }}" required
+                                       class="w-full px-4 py-2 rounded bg-[#e5e7eb] dark:bg-[#1a2230] text-black dark:text-white border border-[#e5e7eb] dark:border-[#363b4a] focus:outline-none focus:border-[#7a85ff]">
+                            </div>
+                            <div>
+                                <label class="block text-black dark:text-white text-sm font-medium mb-2">Email *</label>
+                                <input type="email" name="email" value="{{ user_data.email }}" required
+                                       class="w-full px-4 py-2 rounded bg-[#e5e7eb] dark:bg-[#1a2230] text-black dark:text-white border border-[#e5e7eb] dark:border-[#363b4a] focus:outline-none focus:border-[#7a85ff]">
+                            </div>
+                            <div>
+                                <label class="block text-black dark:text-white text-sm font-medium mb-2">Телефон *</label>
+                                <input type="tel" name="phone" value="{{ user_data.phone }}" required
+                                       class="w-full px-4 py-2 rounded bg-[#e5e7eb] dark:bg-[#1a2230] text-black dark:text-white border border-[#e5e7eb] dark:border-[#363b4a] focus:outline-none focus:border-[#7a85ff]">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Адрес доставки -->
+                    <div class="mb-8">
+                        <h2 class="text-xl font-bold text-black dark:text-white mb-4">Адрес доставки</h2>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-black dark:text-white text-sm font-medium mb-2">Регион *</label>
+                                <input type="text" name="delivery_region" value="{{ user_data.delivery_region }}" required
+                                       class="w-full px-4 py-2 rounded bg-[#e5e7eb] dark:bg-[#1a2230] text-black dark:text-white border border-[#e5e7eb] dark:border-[#363b4a] focus:outline-none focus:border-[#7a85ff]">
+                            </div>
+                            <div>
+                                <label class="block text-black dark:text-white text-sm font-medium mb-2">Город *</label>
+                                <input type="text" name="delivery_city" value="{{ user_data.delivery_city }}" required
+                                       class="w-full px-4 py-2 rounded bg-[#e5e7eb] dark:bg-[#1a2230] text-black dark:text-white border border-[#e5e7eb] dark:border-[#363b4a] focus:outline-none focus:border-[#7a85ff]">
+                            </div>
+                            <div>
+                                <label class="block text-black dark:text-white text-sm font-medium mb-2">Улица *</label>
+                                <input type="text" name="delivery_street" value="{{ user_data.delivery_street }}" required
+                                       class="w-full px-4 py-2 rounded bg-[#e5e7eb] dark:bg-[#1a2230] text-black dark:text-white border border-[#e5e7eb] dark:border-[#363b4a] focus:outline-none focus:border-[#7a85ff]">
+                            </div>
+                            <div>
+                                <label class="block text-black dark:text-white text-sm font-medium mb-2">Дом *</label>
+                                <input type="text" name="delivery_house" value="{{ user_data.delivery_house }}" required
+                                       class="w-full px-4 py-2 rounded bg-[#e5e7eb] dark:bg-[#1a2230] text-black dark:text-white border border-[#e5e7eb] dark:border-[#363b4a] focus:outline-none focus:border-[#7a85ff]">
+                            </div>
+                            <div>
+                                <label class="block text-black dark:text-white text-sm font-medium mb-2">Квартира</label>
+                                <input type="text" name="delivery_apartment" value="{{ user_data.delivery_apartment }}"
+                                       class="w-full px-4 py-2 rounded bg-[#e5e7eb] dark:bg-[#1a2230] text-black dark:text-white border border-[#e5e7eb] dark:border-[#363b4a] focus:outline-none focus:border-[#7a85ff]">
+                            </div>
+                            <div>
+                                <label class="block text-black dark:text-white text-sm font-medium mb-2">Почтовый индекс</label>
+                                <input type="text" name="delivery_postal_code" value="{{ user_data.delivery_postal_code }}"
+                                       class="w-full px-4 py-2 rounded bg-[#e5e7eb] dark:bg-[#1a2230] text-black dark:text-white border border-[#e5e7eb] dark:border-[#363b4a] focus:outline-none focus:border-[#7a85ff]">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Способ оплаты -->
+                    <div class="mb-8">
+                        <h2 class="text-xl font-bold text-black dark:text-white mb-4">Способ оплаты</h2>
+                        <div class="space-y-3">
+                            <label class="flex items-center">
+                                <input type="radio" name="payment_method" value="cash" checked
+                                       class="mr-3 text-[#7a85ff] focus:ring-[#7a85ff]">
+                                <span class="text-black dark:text-white">Наличными при получении</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="radio" name="payment_method" value="card"
+                                       class="mr-3 text-[#7a85ff] focus:ring-[#7a85ff]">
+                                <span class="text-black dark:text-white">Банковской картой</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="radio" name="payment_method" value="online"
+                                       class="mr-3 text-[#7a85ff] focus:ring-[#7a85ff]">
+                                <span class="text-black dark:text-white">Онлайн оплата</span>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <!-- Комментарий -->
+                    <div class="mb-8">
+                        <label class="block text-black dark:text-white text-sm font-medium mb-2">Комментарий к заказу</label>
+                        <textarea name="comment" rows="3" placeholder="Дополнительные пожелания..."
+                                  class="w-full px-4 py-2 rounded bg-[#e5e7eb] dark:bg-[#1a2230] text-black dark:text-white border border-[#e5e7eb] dark:border-[#363b4a] focus:outline-none focus:border-[#7a85ff]"></textarea>
+                    </div>
+                </form>
+            </div>
+            
+            <!-- Сводка заказа -->
+            <div class="lg:col-span-1">
+                <div class="bg-white dark:bg-[#28303F] rounded-2xl p-8 shadow-lg sticky top-20">
+                    <h2 class="text-xl font-bold text-black dark:text-white mb-6">Ваш заказ</h2>
+                    
+                    <!-- Товары -->
+                    <div class="space-y-4 mb-6">
+                        {% for item in cart_items %}
+                        <div class="flex justify-between items-center">
+                            <div class="flex-1">
+                                <div class="text-black dark:text-white font-medium text-sm">{{ item.product.name }}</div>
+                                <div class="text-[#b0b0b0] dark:text-[#7a8599] text-sm">{{ item.quantity }} шт. × {{ item.product.final_price|floatformat:0 }} ₽</div>
+                            </div>
+                            <div class="text-black dark:text-white font-bold">
+                                {{ item.product.final_price|floatformat:0|mul:item.quantity }} ₽
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    
+                    <hr class="border-[#e5e7eb] dark:border-[#363b4a] mb-6">
+                    
+                    <!-- Суммы -->
+                    <div class="space-y-3 mb-6">
+                        <div class="flex justify-between text-[#b0b0b0] dark:text-[#7a8599]">
+                            <span>Сумма товаров:</span>
+                            <span>{{ subtotal|floatformat:0 }} ₽</span>
+                        </div>
+                        
+                        {% if applied_promocode %}
+                        <div class="flex justify-between text-green-600 dark:text-green-400">
+                            <span>Скидка ({{ applied_promocode.code }}):</span>
+                            <span>-{{ discount_amount|floatformat:0 }} ₽</span>
+                        </div>
+                        {% endif %}
+                        
+                        <div class="flex justify-between text-black dark:text-white text-lg font-bold">
+                            <span>Итого:</span>
+                            <span>{{ total_amount|floatformat:0 }} ₽</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Кнопка оформления -->
+                    <button type="submit" form="checkout-form" id="submit-order"
+                            class="w-full bg-[#7a85ff] hover:bg-[#4b1bb3] text-white py-4 rounded-xl text-lg font-bold transition-colors">
+                        Оформить заказ
+                    </button>
+                    
+                    <!-- Сообщения об ошибках -->
+                    <div id="order-error" class="hidden mt-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+                        <span class="text-red-700 dark:text-red-300 text-sm"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+function showError(message) {
+    const errorDiv = document.getElementById('order-error');
+    if (errorDiv) {
+        errorDiv.querySelector('span').textContent = message;
+        errorDiv.classList.remove('hidden');
+        setTimeout(() => {
+            errorDiv.classList.add('hidden');
+        }, 5000);
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('checkout-form');
+    const submitBtn = document.getElementById('submit-order');
+    
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Оформляем заказ...';
+        
+        const formData = new FormData(form);
+        
+        fetch('/orders/create/', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) { // Успешное создание заказа
+                window.location.href = data.redirect_url;
+            } else {
+                showError(data.error || 'Произошла ошибка при оформлении заказа');
+            }
+        })
+        .catch(error => {
+            console.error('Order error:', error);
+            showError('Произошла ошибка при оформлении заказа');
+        })
+        .finally(() => {
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Оформить заказ';
+        });
+    });
+});
+</script>
+{% endblock %}

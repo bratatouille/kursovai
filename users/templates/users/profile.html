@@ -1,0 +1,903 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="max-w-6xl mx-auto">
+        <div class="flex flex-col md:flex-row gap-6">
+            <!-- Левая панель с фото и навигацией -->
+            <div class="w-full md:w-64 flex-shrink-0">
+                <div class="bg-white dark:bg-[#28303F] shadow-md rounded-lg p-6">
+                    <div class="flex flex-col items-center mb-6">
+                        <div class="w-48 h-48 rounded-full bg-gray-300 dark:bg-gray-600 flex items-center justify-center mb-4">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-24 w-24 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                            </svg>
+                        </div>
+                        <h2 class="text-2xl font-bold dark:text-white text-center">{{ user.first_name }} {{ user.last_name }}</h2>
+                        <p class="text-gray-600 dark:text-gray-400 text-center">{{ user.email }}</p>
+                    </div>
+
+                    <nav class="space-y-2">
+                        <button onclick="showSection('personal-info')" class="menu-item block w-full px-4 py-2 text-left rounded-md hover:bg-gray-100 dark:hover:bg-[#1E242E] text-gray-700 dark:text-gray-300" data-section="personal-info">
+                            Личная информация
+                        </button>
+                        <button onclick="showSection('order-history')" class="menu-item block w-full px-4 py-2 text-left rounded-md hover:bg-gray-100 dark:hover:bg-[#1E242E] text-gray-700 dark:text-gray-300" data-section="order-history">
+                            История заказов
+                        </button>
+                        <button onclick="showSection('promocodes')" class="menu-item block w-full px-4 py-2 text-left rounded-md hover:bg-gray-100 dark:hover:bg-[#1E242E] text-gray-700 dark:text-gray-300" data-section="promocodes">
+                            Промокоды
+                        </button>
+                        <button onclick="showSection('configurations')" class="menu-item block w-full px-4 py-2 text-left rounded-md hover:bg-gray-100 dark:hover:bg-[#1E242E] text-gray-700 dark:text-gray-300" data-section="configurations">
+                            Мои конфигурации
+                        </button>
+                    </nav>
+
+                    <div class="mt-6">
+                        <a href="{% url 'users:logout' %}" class="block w-full px-4 py-2 text-center bg-red-600 text-white rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+                            Выйти
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Правая панель с контентом -->
+            <div class="flex-1">
+                <div class="bg-white dark:bg-[#28303F] shadow-md rounded-lg p-6">
+                    <!-- Личная информация -->
+                    <div id="personal-info" class="section-content">
+                        <h3 class="text-xl dark:text-white font-semibold mb-4">Личная информация</h3>
+                        <form method="POST" class="space-y-6">
+                            {% csrf_token %}
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Имя</label>
+                                    <input type="text" name="first_name" value="{{ user.first_name }}" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-[#1E242E] dark:text-white">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Фамилия</label>
+                                    <input type="text" name="last_name" value="{{ user.last_name }}" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-[#1E242E] dark:text-white">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Email</label>
+                                    <input type="email" name="email" value="{{ user.email }}" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-[#1E242E] dark:text-white">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Телефон</label>
+                                    <input type="tel" name="phone" value="{{ user.phone }}" placeholder="+7 (___) ___-__-__" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-[#1E242E] dark:text-white">
+                                </div>
+                            </div>
+
+                            <div class="mt-6">
+                                <h4 class="text-lg dark:text-white font-medium mb-4">Информация о доставке</h4>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Область/Регион</label>
+                                        <input type="text" name="delivery_region" value="{{ user.delivery_region }}" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-[#1E242E] dark:text-white">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Город</label>
+                                        <input type="text" name="delivery_city" value="{{ user.delivery_city }}" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-[#1E242E] dark:text-white">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Улица</label>
+                                        <input type="text" name="delivery_street" value="{{ user.delivery_street }}" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-[#1E242E] dark:text-white">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Дом</label>
+                                        <input type="text" name="delivery_house" value="{{ user.delivery_house }}" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-[#1E242E] dark:text-white">
+                                    </div>      
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Квартира</label>
+                                        <input type="text" name="delivery_apartment" value="{{ user.delivery_apartment }}" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-[#1E242E] dark:text-white">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Почтовый индекс</label>
+                                        <input type="text" name="delivery_postal_code" value="{{ user.delivery_postal_code }}" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-[#1E242E] dark:text-white">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mt-6 flex justify-end">
+                                <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                                    Сохранить изменения
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- История заказов -->
+                    <div id="order-history" class="section-content hidden">
+                        <h3 class="text-xl font-semibold dark:text-white mb-4">История заказов</h3>
+                        
+                        <div id="orders-list" class="space-y-4">
+                            <!-- Загружается через JS -->
+                        </div>
+                        
+                        <!-- Состояние загрузки -->
+                        <div id="orders-loading" class="text-center py-8">
+                            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto mb-4"></div>
+                            <p class="text-gray-600 dark:text-gray-400">Загрузка заказов...</p>
+                        </div>
+                        
+                        <!-- Пустое состояние -->
+                        <div id="orders-empty" class="hidden bg-gray-50 dark:bg-[#1E242E] rounded-lg p-6">
+                            <div class="text-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mx-auto text-gray-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                                </svg>
+                                <p class="text-gray-600 dark:text-gray-400 mb-4">У вас пока нет заказов</p>
+                                <a href="{% url 'store:catalog' %}" class="inline-block text-blue-600 dark:text-blue-400 hover:text-blue-500 dark:hover:text-blue-300">
+                                    Перейти в каталог
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Промокоды -->
+                   <div id="promocodes" class="section-content hidden">
+    <h3 class="text-xl font-semibold dark:text-white mb-4">Мои промокоды</h3>
+    
+
+        
+        <!-- Список промокодов -->
+        <div id="promocodes-list" class="space-y-4">
+            <!-- Промокоды загружаются через JS -->
+        </div>
+    
+   <!-- Пустое состояние -->
+    <div id="promocodes-empty" class="hidden bg-gray-50 dark:bg-[#1E242E] rounded-lg p-6">
+        <div class="text-center">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mx-auto text-gray-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+            </svg>
+            <p class="text-gray-600 dark:text-gray-400 mb-4">У вас пока нет доступных промокодов</p>
+            <p class="text-sm text-gray-500 dark:text-gray-500">Промокоды появятся здесь автоматически или вы можете получить их по акциям</p>
+        </div>
+    </div>
+</div>
+
+                    <!-- Мои конфигурации -->
+                    <div id="configurations" class="section-content hidden">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-xl font-semibold dark:text-white">Мои конфигурации</h3>
+                            <a href="{% url 'pcbuilder:pcbuilder' %}" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+                                Создать новую
+                            </a>
+                        </div>
+                        
+                        <div id="configurations-list" class="space-y-4">
+                            <!-- Загружается через JS -->
+                        </div>
+                        
+                        <!-- Пустое состояние -->
+                        <div id="configurations-empty" class="hidden bg-gray-50 dark:bg-[#1E242E] rounded-lg p-6">
+                            <div class="text-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mx-auto text-gray-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                                </svg>
+                                <p class="text-gray-600 dark:text-gray-400 mb-4">У вас пока нет сохраненных конфигураций</p>
+                                <a href="{% url 'pcbuilder:pcbuilder' %}" class="inline-block text-blue-600 dark:text-blue-400 hover:text-blue-500 dark:hover:text-blue-300">
+                                    Создать первую конфигурацию
+                                </a>
+                            </div>
+                        </div>
+                    </div>                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function showSection(sectionId) {
+    // Сохраняем выбранную секцию в localStorage
+    localStorage.setItem('profileActiveSection', sectionId);
+    // Скрываем все секции
+    document.querySelectorAll('.section-content').forEach(section => {
+        section.classList.add('hidden');
+    });
+    // Показываем выбранную секцию
+    const section = document.getElementById(sectionId);
+    if (section) section.classList.remove('hidden');
+    // Подсвечиваем активный пункт в меню
+    document.querySelectorAll('.menu-item').forEach(item => {
+        item.classList.remove('bg-gray-600', 'text-white');
+        item.classList.add('text-gray-700', 'dark:text-gray-300', 'hover:bg-gray-100', 'dark:hover:bg-[#1E242E]');
+        if (item.getAttribute('data-section') === sectionId) {
+            item.classList.add('bg-gray-600', 'text-white');
+            item.classList.remove('text-gray-700', 'dark:text-gray-300', 'hover:bg-gray-100', 'dark:hover:bg-[#1E242E]');
+        }
+    });
+    // Загружаем данные для соответствующих секций
+    if (sectionId === 'configurations') {
+        loadUserConfigurations();
+    } else if (sectionId === 'promocodes') {
+        loadPromocodes();
+    } else if (sectionId === 'order-history') {
+        loadOrders();  // Добавляем загрузку заказов
+    }
+}
+
+async function loadPromocodes() {
+    try {
+        const response = await fetch('/users/api/promocodes/');
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        console.log('Ответ API промокодов:', data);
+        
+        // Скрываем индикатор загрузки
+        const loadingEl = document.getElementById('promocodes-loading');
+        if (loadingEl) loadingEl.classList.add('hidden');
+        
+        if (data.success) {
+            const promocodesData = data.promocodes;
+            console.log('Данные промокодов:', promocodesData);
+            
+            // Проверяем, что promocodes является объектом с нужными свойствами
+            if (!promocodesData || typeof promocodesData !== 'object') {
+                console.error('Промокоды не являются объектом:', promocodesData);
+                showPromocodesError('Ошибка формата данных промокодов');
+                return;
+            }
+            
+            // Объединяем все промокоды в один массив
+            const allPromocodes = [
+                ...(promocodesData.personal || []),
+                ...(promocodesData.available || []),
+                ...(promocodesData.used || [])
+            ];
+            
+            console.log('Все промокоды:', allPromocodes, 'Количество:', allPromocodes.length);
+            
+            if (allPromocodes.length === 0) {
+                document.getElementById('promocodes-empty').classList.remove('hidden');
+                return;
+            }
+            
+            renderPromocodes(promocodesData);
+            
+        } else {
+            console.error('Ошибка загрузки промокодов:', data.error);
+            showPromocodesError('Ошибка загрузки промокодов: ' + (data.error || 'Неизвестная ошибка'));
+        }
+    } catch (error) {
+        console.error('Ошибка загрузки промокодов:', error);
+        const loadingEl = document.getElementById('promocodes-loading');
+        if (loadingEl) loadingEl.classList.add('hidden');
+        showPromocodesError('Не удалось загрузить промокоды. Попробуйте обновить страницу.');
+    }
+}
+
+// Отображение промокодов
+function renderPromocodes(promocodesData) {
+    const container = document.getElementById('promocodes-list');
+    
+    if (!container) {
+        console.error('Контейнер promocodes-list не найден');
+        return;
+    }
+    
+    console.log('Отрисовка промокодов:', promocodesData);
+    
+    let html = '';
+    
+    // Персональные промокоды
+    if (promocodesData.personal && promocodesData.personal.length > 0) {
+        html += `
+            <div class="mb-6">
+                <h4 class="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
+                    <svg class="w-5 h-5 mr-2 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                    </svg>
+                    Персональные промокоды
+                </h4>
+                <div class="space-y-4">
+                    ${renderPromocodesGroup(promocodesData.personal)}
+                </div>
+            </div>
+        `;
+    }
+    
+    // Доступные промокоды
+    if (promocodesData.available && promocodesData.available.length > 0) {
+        html += `
+            <div class="mb-6">
+                <h4 class="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
+                    <svg class="w-5 h-5 mr-2 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
+                    </svg>
+                    Доступные промокоды
+                </h4>
+                <div class="space-y-4">
+                    ${renderPromocodesGroup(promocodesData.available)}
+                </div>
+            </div>
+        `;
+    }
+    
+    // Использованные промокоды
+    if (promocodesData.used && promocodesData.used.length > 0) {
+        html += `
+            <div class="mb-6">
+                <h4 class="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
+                    <svg class="w-5 h-5 mr-2 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    Использованные промокоды
+                </h4>
+                <div class="space-y-4">
+                    ${renderPromocodesGroup(promocodesData.used)}
+                </div>
+            </div>
+        `;
+    }
+    
+    container.innerHTML = html;
+    console.log('HTML промокодов сгенерирован, длина:', container.innerHTML.length);
+}
+
+// Функция для отрисовки группы промокодов
+function renderPromocodesGroup(promocodes) {
+    if (!Array.isArray(promocodes)) {
+        console.error('renderPromocodesGroup: promocodes не является массивом:', promocodes);
+        return '';
+    }
+    
+    return promocodes.map(promo => {
+        // Проверяем, что promo является объектом
+        if (!promo || typeof promo !== 'object') {
+            console.error('Некорректный промокод:', promo);
+            return '';
+        }
+        
+        // Статус промокода теперь приходит с бэкенда
+        const displayStatus = promo.display_status;
+        
+        let statusClass = 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300';
+        let statusText = 'Активен';
+        
+        switch (displayStatus) {
+            case 'expired':
+                statusClass = 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-white';
+                statusText = 'Истек';
+                break;
+            case 'not_started':
+                statusClass = 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300';
+                statusText = 'Скоро';
+                break;
+            case 'used_up': // Исчерпан глобально
+                statusClass = 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300';
+                statusText = 'Исчерпан';
+                break;
+            case 'used': // Использован этим пользователем
+                statusClass = 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300';
+                statusText = 'Использован';
+                break;
+            case 'inactive':
+                statusClass = 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300';
+                statusText = 'Неактивен';
+                break;
+        }
+        
+        // Форматируем скидку
+        const discountValue = parseFloat(promo.discount_value);
+        const discountText = promo.discount_type === 'percent' 
+            ? `${!isNaN(discountValue) ? discountValue : 0}%` 
+            : `${formatPrice(promo.discount_value)} ₽`;
+        
+        return `
+            <div class="bg-white dark:bg-[#28303F] border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
+                <div class="p-6">
+                    <!-- Заголовок промокода -->
+                    <div class="flex justify-between items-start mb-4">
+                        <div class="flex-1">
+                            <div class="flex items-center gap-3 mb-2">
+                                <h4 class="text-xl font-bold text-gray-900 dark:text-white">
+                                    ${promo.code || 'Код не указан'}
+                                </h4>
+                                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${statusClass}">
+                                    ${statusText}
+                                </span>
+                            </div>
+                            <p class="text-lg font-semibold text-blue-600 dark:text-blue-400 mb-1">
+                                Скидка ${discountText}
+                            </p>
+                            ${promo.name ? `<p class="text-sm text-gray-600 dark:text-gray-400">${promo.name}</p>` : ''}
+                        </div>
+                    </div>
+                    
+                    <!-- Описание -->
+                    ${promo.description ? `
+                        <div class="mb-4">
+                            <p class="text-sm text-gray-600 dark:text-gray-400">${promo.description}</p>
+                        </div>
+                    ` : ''}
+                    
+                    <!-- Условия -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                        <!-- Период действия -->
+                        <div class="text-sm">
+                            <span class="font-medium text-gray-900 dark:text-white">Период действия:</span>
+                            <p class="text-gray-600 dark:text-gray-400">
+                                ${formatPromoPeriod(promo.start_date, promo.end_date)}
+                            </p>
+                        </div>
+                        
+                        <!-- Минимальная сумма заказа -->
+                        ${promo.min_order_amount > 0 ? `
+                            <div class="text-sm">
+                                <span class="font-medium text-gray-900 dark:text-white">Минимальная сумма:</span>
+                                <p class="text-gray-600 dark:text-gray-400">${formatPrice(promo.min_order_amount)} ₽</p>
+                            </div>
+                        ` : ''}
+                        
+                        <!-- Максимальная скидка -->
+                        ${promo.max_discount_amount ? `
+                            <div class="text-sm">
+                                <span class="font-medium text-gray-900 dark:text-white">Максимальная скидка:</span>
+                                <p class="text-gray-600 dark:text-gray-400">${formatPrice(promo.max_discount_amount)} ₽</p>
+                            </div>
+                        ` : ''}
+                        
+                    
+                    <!-- Категории (если есть ограничения) -->
+                    ${promo.allowed_categories && Array.isArray(promo.allowed_categories) && promo.allowed_categories.length > 0 ? `
+                        <div class="mb-4">
+                            <span class="text-sm font-medium text-gray-900 dark:text-white">Действует для категорий:</span>
+                            <div class="flex flex-wrap gap-2 mt-2">
+                                ${promo.allowed_categories.map(cat => `
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300">
+                                        ${cat}
+                                    </span>
+                                `).join('')}
+                            </div>
+                        </div>
+                    ` : ''}
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+function formatPromoPeriod(startDate, endDate) {
+    const start = formatDate(startDate);
+    const end = formatDate(endDate);
+
+    if (start === 'бессрочно' && end === 'бессрочно') {
+        return 'бессрочный';
+    }
+    if (start === 'бессрочно') {
+        return `до ${end}`;
+    }
+    if (end === 'бессрочно') {
+        return `с ${start}`;
+    }
+    return `с ${start} по ${end}`;
+}
+
+// Показать ошибку загрузки промокодов
+function showPromocodesError(message) {
+    const container = document.getElementById('promocodes-list');
+    if (!container) {
+        console.error('Контейнер promocodes-list не найден для показа ошибки');
+        return;
+    }
+    
+    container.innerHTML = `
+        <div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
+            <div class="flex">
+                <div class="flex-shrink-0">
+                    <svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+                    </svg>
+                </div>
+                <div class="ml-3">
+                    <h3 class="text-sm font-medium text-red-800 dark:text-red-200">
+                        Ошибка загрузки
+                    </h3>
+                    <div class="mt-2 text-sm text-red-700 dark:text-red-300">
+                        <p>${message}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+// Функция форматирования даты
+function formatDate(dateString) {
+    if (!dateString) {
+        return '';
+    }
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) {
+        return '';
+    }
+    return date.toLocaleDateString('ru-RU', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric'
+    });
+}
+
+// Функция копирования промокода, больше не используется
+/*
+function copyPromocode(code) {
+    navigator.clipboard.writeText(code).then(() => {
+        // Показываем уведомление об успешном копировании
+        showToast('Промокод скопирован: ' + code, 'success');
+    }).catch(err => {
+        console.error('Ошибка копирования:', err);
+        // Fallback для старых браузеров
+        const textArea = document.createElement('textarea');
+        textArea.value = code;
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+        showToast('Промокод скопирован: ' + code, 'success');
+    });
+}
+*/
+
+
+async function loadUserConfigurations() {
+    const container = document.getElementById('configurations-list');
+    try {
+        const response = await fetch("{% url 'pcbuilder:api_builds' %}");
+        const data = await response.json();
+        
+        if (data.success) {
+            if (data.configurations.length === 0) {
+                container.innerHTML = `
+                    <div class="bg-gray-50 dark:bg-[#1E242E] rounded-lg p-6">
+                        <div class="text-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mx-auto text-gray-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                            </svg>
+                            <p class="text-gray-600 dark:text-gray-400">У вас пока нет сохраненных конфигураций</p>
+                        </div>
+                    </div>`;
+                return;
+            }
+            
+            container.innerHTML = data.configurations.map(config => `
+                <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
+                    <div class="p-4">
+                        <div class="flex justify-between items-start mb-4">
+                            <div>
+                                <h4 class="text-lg font-semibold text-gray-900 dark:text-white">${config.name}</h4>
+                                <p class="text-sm text-gray-500 dark:text-gray-400">Создано: ${formatDate(config.created_at)}</p>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-lg font-bold text-blue-600 dark:text-blue-400">${formatPrice(config.total_price)} ₽</p>
+                            </div>
+                        </div>
+                        <div class="space-y-2">
+                            ${config.components.map(component => `
+                                <div class="flex justify-between items-center text-sm">
+                                    <div class="flex-1">
+                                        <p class="text-gray-900 dark:text-white">${component.product_name}</p>
+                                        <p class="text-gray-500 dark:text-gray-400">${component.category_name}</p>
+                                    </div>
+                                    <p class="text-gray-600 dark:text-gray-300 ml-4">${formatPrice(component.price)} ₽</p>
+                                </div>
+                            `).join('')}
+                        </div>
+                        <div class="mt-4 flex justify-end space-x-2">
+                            <a href="{% url 'pcbuilder:pcbuilder' %}?load_config=${config.id}" 
+                               class="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+                                Загрузить
+                            </a>
+                            <button onclick="deleteConfiguration(${config.id})" 
+                                    class="px-3 py-1 text-sm bg-red-600 text-white rounded hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2">
+                                Удалить
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        } else {
+            throw new Error(data.error || 'Ошибка при загрузке конфигураций');
+        }
+    } catch (error) {
+        console.error('Ошибка при загрузке конфигураций:', error);
+        container.innerHTML = `
+            <div class="bg-red-50 dark:bg-red-900/20 rounded-lg p-4 text-red-600 dark:text-red-400">
+                Ошибка при загрузке конфигураций. Пожалуйста, попробуйте позже.
+            </div>`;
+    }
+}
+
+async function deleteConfiguration(configId) {
+    if (!confirm('Вы уверены, что хотите удалить эту конфигурацию?')) {
+        return;
+    }
+    
+    try {
+        const response = await fetch(`/pcbuilder/api/delete-configuration/${configId}/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            }
+        });
+        
+        const data = await response.json();
+        if (data.success) {
+            loadUserConfigurations(); // Перезагружаем список конфигураций
+        } else {
+            throw new Error(data.error || 'Ошибка при удалении конфигурации');
+        }
+    } catch (error) {
+        console.error('Ошибка при удалении конфигурации:', error);
+        alert('Произошла ошибка при удалении конфигурации. Пожалуйста, попробуйте позже.');
+    }
+}
+
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+// Функция форматирования цены
+function formatPrice(price) {
+    const numPrice = Number(price);
+    if (isNaN(numPrice)) {
+        return '0';
+    }
+    return Math.round(numPrice).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+}
+
+// Загрузка заказов с улучшенной отладкой
+async function loadOrders() {
+    console.log('Начинаем загрузку заказов...');
+    
+    try {
+        const response = await fetch('/users/api/orders/');
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const contentType = response.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) {
+            console.error('Ответ не является JSON:', await response.text());
+            throw new Error('Сервер вернул не JSON ответ');
+        }
+        
+        const data = await response.json();
+        console.log('Получены данные заказов:', data);
+        
+        document.getElementById('orders-loading').classList.add('hidden');
+        
+        if (data.success) {
+            const orders = data.orders;
+            console.log('Количество заказов:', orders.length);
+            
+            if (orders.length === 0) {
+                console.log('Заказов нет, показываем пустое состояние');
+                document.getElementById('orders-empty').classList.remove('hidden');
+                return;
+            }
+            
+            console.log('Вызываем renderOrders...');
+            renderOrders(orders);
+            
+        } else {
+            console.error('Ошибка в ответе сервера:', data.error);
+            showOrdersError('Ошибка загрузки заказов: ' + (data.error || 'Неизвестная ошибка'));
+        }
+    } catch (error) {
+        console.error('Ошибка при загрузке заказов:', error);
+        document.getElementById('orders-loading').classList.add('hidden');
+        showOrdersError('Не удалось загрузить заказы. Попробуйте обновить страницу.');
+    }
+}
+
+// Показать ошибку загрузки заказов
+function showOrdersError(message) {
+    const container = document.getElementById('orders-list');
+    if (!container) {
+        console.error('Контейнер orders-list не найден для показа ошибки');
+        return;
+    }
+    
+    container.innerHTML = `
+        <div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
+            <div class="flex">
+                <div class="flex-shrink-0">
+                    <svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+                    </svg>
+                </div>
+                <div class="ml-3">
+                    <h3 class="text-sm font-medium text-red-800 dark:text-red-200">
+                        Ошибка загрузки
+                    </h3>
+                    <div class="mt-2 text-sm text-red-700 dark:text-red-300">
+                        <p>${message}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+// Отображение заказов
+function renderOrders(orders) {
+    const container = document.getElementById('orders-list');
+    
+    if (!container) {
+        console.error('Контейнер orders-list не найден');
+        return;
+    }
+    
+    console.log('Отрисовка заказов:', orders); // Для отладки
+    
+    container.innerHTML = orders.map(order => `
+        <div class="bg-white dark:bg-[#28303F] border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
+            <!-- Заголовок заказа -->
+            <div class="p-6 border-b border-gray-200 dark:border-gray-700">
+                <div class="flex justify-between items-start mb-4">
+                    <div>
+                        <h4 class="text-lg font-bold text-gray-900 dark:text-white mb-1">
+                            Заказ №${order.order_number}
+                        </h4>
+                        <p class="text-sm text-gray-600 dark:text-gray-400">
+                            ${formatDate(order.created_at)}
+                        </p>
+                    </div>
+                    <div class="text-right">
+                        <div class="text-2xl font-bold text-gray-900 dark:text-white mb-1">
+                            ${formatPrice(order.total_amount)} ₽
+                        </div>
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${order.status_color}">
+                            ${order.status_display}
+                        </span>
+                    </div>
+                </div>
+                
+                <!-- Информация о скидке -->
+                ${order.discount_amount > 0 ? `
+                    <div class="flex justify-between items-center text-sm mb-2">
+                        <span class="text-gray-600 dark:text-gray-400">Сумма без скидки:</span>
+                        <span class="text-gray-900 dark:text-white">${formatPrice(order.subtotal)} ₽</span>
+                    </div>
+                    <div class="flex justify-between items-center text-sm mb-2">
+                        <span class="text-green-600 dark:text-green-400">
+                            Скидка ${order.promocode_used ? `(${order.promocode_used})` : ''}:
+                        </span>
+                        <span class="text-green-600 dark:text-green-400">-${formatPrice(order.discount_amount)} ₽</span>
+                    </div>
+                ` : ''}
+                
+                <!-- Адрес доставки -->
+                <div class="text-sm text-gray-600 dark:text-gray-400 mb-2">
+                    <span class="font-medium">Адрес доставки:</span> ${order.delivery_address}
+                </div>
+                
+                <!-- Способ оплаты -->
+                <div class="text-sm text-gray-600 dark:text-gray-400">
+                    <span class="font-medium">Способ оплаты:</span> ${order.payment_method}
+                </div>
+            </div>
+            
+            <!-- Товары заказа -->
+            <div class="p-6">
+                <h5 class="font-medium text-gray-900 dark:text-white mb-3">
+                    Товары (${order.items_count} шт.)
+                </h5>
+                <div class="space-y-3">
+                    ${order.items && order.items.length > 0 ? order.items.map(item => `
+                        <div class="flex justify-between items-center py-2 border-b border-gray-100 dark:border-gray-600 last:border-b-0">
+                            <div class="flex-1">
+                                <p class="text-sm font-medium text-gray-900 dark:text-white">
+                                    ${item.product_name}
+                                </p>
+                                <p class="text-xs text-gray-500 dark:text-gray-400">
+                                    ${formatPrice(item.product_price)} ₽ × ${item.quantity} шт.
+                                </p>
+                            </div>
+                            <div class="text-sm font-medium text-gray-900 dark:text-white">
+                                ${formatPrice(item.total_price)} ₽
+                            </div>
+                        </div>
+                    `).join('') : '<p class="text-sm text-gray-500 dark:text-gray-400">Товары не найдены</p>'}
+                </div>
+                
+                <!-- Кнопка подробнее и отмены заказа -->
+                <div class="mt-4 flex flex-row gap-2 justify-center items-center">
+                    <a href="/orders/${order.id}/" 
+                       class="inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-[#1E242E] hover:bg-gray-50 dark:hover:bg-[#28303F] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors">
+                        Подробнее о заказе
+                    </a>
+                    ${['pending', 'processing'].includes(order.status) ? `
+                        <button class="cancel-order-btn inline-flex items-center px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-md text-sm font-bold transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500" data-order-id="${order.id}">
+                            Отменить заказ
+                        </button>
+                    ` : ''}
+                </div>
+            </div>
+        </div>
+    `).join('');
+    
+    // Навешиваем обработчик на кнопки отмены заказа
+    const cancelButtons = container.querySelectorAll('.cancel-order-btn');
+    cancelButtons.forEach(btn => {
+        btn.addEventListener('click', async function() {
+            if (!confirm('Вы уверены, что хотите отменить этот заказ?')) return;
+            const orderId = this.getAttribute('data-order-id');
+            this.disabled = true;
+            this.textContent = 'Отмена...';
+            try {
+                const response = await fetch(`/orders/${orderId}/cancel/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': getCookie('csrftoken'),
+                        'Content-Type': 'application/json',
+                    },
+                });
+                const data = await response.json();
+                if (data.success) {
+                    // Перезагрузить список заказов
+                    location.reload();
+                } else {
+                    alert(data.error || 'Не удалось отменить заказ');
+                    this.disabled = false;
+                    this.textContent = 'Отменить заказ';
+                }
+            } catch (error) {
+                alert('Ошибка при отмене заказа. Попробуйте позже.');
+                this.disabled = false;
+                this.textContent = 'Отменить заказ';
+            }
+        });
+    });
+}
+
+// Обновляем обработчик переключения секций с улучшенной отладкой
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM загружен, инициализируем профиль...');
+    
+    const menuItems = document.querySelectorAll('.menu-item');
+    const sections = document.querySelectorAll('.section-content');
+    
+    console.log('Найдено пунктов меню:', menuItems.length);
+    console.log('Найдено секций:', sections.length);
+
+    // Восстанавливаем активную секцию из localStorage
+    const savedSection = localStorage.getItem('profileActiveSection');
+    let sectionToShow = savedSection;
+    // Если сохранённой секции нет или она не существует, показываем первую
+    if (!sectionToShow || !document.getElementById(sectionToShow)) {
+        sectionToShow = menuItems.length > 0 ? menuItems[0].getAttribute('data-section') : null;
+    }
+    if (sectionToShow) {
+        showSection(sectionToShow);
+    }
+    // Навешиваем обработчики на меню (на случай если они нужны)
+    menuItems.forEach(item => {
+        item.addEventListener('click', function(event) {
+            // event.preventDefault(); // Если это ссылки, чтобы не переходить по ним
+            const targetSectionId = this.getAttribute('data-section');
+            showSection(targetSectionId);
+        });
+    });
+});
+</script>
+{% endblock %}
+

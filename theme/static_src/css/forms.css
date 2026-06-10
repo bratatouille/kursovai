@@ -1,0 +1,34 @@
+/* Form styles */
+input[type="text"],
+input[type="password"],
+input[type="email"],
+input[type="number"],
+input[type="tel"],
+input[type="url"],
+input[type="search"],
+input[type="date"],
+input[type="datetime-local"],
+input[type="month"],
+input[type="week"],
+input[type="time"],
+input[type="color"],
+select,
+textarea {
+    @apply appearance-none block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm placeholder-gray-400 
+    focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-[#1E242E] dark:text-white;
+}
+
+/* Error styles */
+.errorlist {
+    @apply text-red-500 dark:text-red-400 text-sm mt-1;
+}
+
+/* Form field errors */
+.field-error {
+    @apply border-red-500 dark:border-red-400;
+}
+
+/* Form field success */
+.field-success {
+    @apply border-green-500 dark:border-green-400;
+} 

@@ -1,0 +1,125 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<!-- Хлебные крошки -->
+<div class="max-w-7xl mx-auto px-4 pt-10 pb-2">
+  <nav class="flex items-center flex-wrap text-xs text-gray-500 dark:text-gray-400">
+    <a href="{% url 'core:index' %}" class="hover:text-[#7a85ff] transition-colors flex items-center">
+      <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+      </svg>
+      Главная
+    </a>
+    <svg class="w-3 h-3 mx-2 text-gray-300 dark:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+    </svg>
+    <a href="{% url 'store:catalog' %}" class="hover:text-[#7a85ff] transition-colors">Каталог</a>
+    <svg class="w-3 h-3 mx-2 text-gray-300 dark:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+    </svg>
+    <span class="text-gray-700 dark:text-gray-300 font-medium">{{ product_line.name }}</span>
+  </nav>
+</div>
+<div class="min-h-screen py-10">
+  <div class="max-w-7xl mx-auto">
+    <h1 class="text-3xl font-bold dark:text-white text-center mb-10">{{ product_line.name }}</h1>
+    {% if categories %}
+      <h2 class="text-xl font-bold dark:text-white mb-4 mt-10">Подкатегории</h2>
+      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8 mb-8">
+        {% for category in categories %}
+          <a href="{% url 'store:category_detail' product_line.slug category.slug %}" class="block">
+            <div class="dark:bg-[#e5e7eb] flex flex-col items-center justify-between rounded-lg overflow-hidden">
+              <div class="flex items-center justify-center w-full h-[180px] bg-[#e5e7eb] text-[#b0b0b0] text-3xl font-bold">
+                {% if category.image %}
+                  <img src="{{ category.image.url }}" alt="{{ category.name }}" class="w-full h-full object-cover">
+                {% else %}
+                  <span class="text-2xl text-center p-4">{{ category.name }}</span>
+                {% endif %}
+              </div>
+              <div class="bg-white dark:bg-[#1a2230] dark:text-white text-center py-3 w-full font-medium">
+                {{ category.name }}
+              </div>
+            </div>
+          </a>
+        {% endfor %}
+      </div>
+    {% endif %}
+    <h2 class="text-xl font-bold dark:text-white mb-4 mt-10">Все товары раздела</h2>
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-6">
+      {% for product in products %}
+        {% include 'store/product_card.html' with product=product cart_product_ids=cart_product_ids wishlist_product_ids=wishlist_product_ids %}
+      {% empty %}
+        <div class="col-span-full text-center dark:text-white py-12">В этом разделе пока нет товаров.</div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Корзина
+    document.querySelectorAll('.cart-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const productSlug = this.dataset.productSlug;
+            const inCart = this.textContent.trim() === 'Убрать из корзины';
+            const url = inCart ? `/cart/remove/${productSlug}/` : `/cart/add/${productSlug}/`;
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRFToken': getCookie('csrftoken')
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    this.textContent = inCart ? 'В корзину' : 'Убрать из корзины';
+                }
+            });
+        });
+    });
+    // Избранное
+    document.querySelectorAll('.wishlist-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const productSlug = this.dataset.productSlug;
+            const url = `/favorites/toggle/${productSlug}/`;
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRFToken': getCookie('csrftoken')
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    if (this.classList.contains('text-purple-500')) {
+                        this.classList.remove('text-purple-500');
+                        this.classList.add('text-black', 'dark:text-white');
+                        this.querySelector('svg').setAttribute('fill', 'none');
+                    } else {
+                        this.classList.remove('text-black', 'dark:text-white');
+                        this.classList.add('text-purple-500');
+                        this.querySelector('svg').setAttribute('fill', 'currentColor');
+                    }
+                }
+            });
+        });
+    });
+});
+
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+</script>
+{% endblock %} 

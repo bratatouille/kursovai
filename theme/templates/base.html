@@ -1,0 +1,66 @@
+{% load static tailwind_tags %}
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+    <title>TechStore - магазин компьютерной техники</title>
+	<link rel="icon" type="image/x-icon" href="{% static 'favicon.ico' %}"
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<meta http-equiv="X-UA-Compatible" content="ie=edge">
+		<link href="{% static 'css/dist/styles.css' %}" rel="stylesheet">
+		{% tailwind_css %}
+		{% block extra_head %}{% endblock %}
+	</head>
+
+	<body class="bg-[#F8F8F8] text-black dark:bg-[#222935]">
+		<!-- Header -->
+		{% include "includes/header.html" %}
+		<!-- Main Content -->
+		<main class="">
+			{% block content %}
+			{% endblock %}
+		</main>
+		{% include "includes/footer.html" %}
+		<script>
+			// Tailwind 4 theme switcher
+			(function() {
+				const html = document.documentElement;
+				const themeToggle = document.getElementById('theme-toggle');
+				const sunIcon = themeToggle.querySelector('.sun-icon');
+				const moonIcon = themeToggle.querySelector('.moon-icon');
+
+				// Определяем стартовую тему
+				function getPreferredTheme() {
+					const stored = localStorage.getItem('theme');
+					if (stored === 'dark' || stored === 'light') return stored;
+					return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+				}
+
+				function applyTheme(theme) {
+					if (theme === 'dark') {
+						html.classList.add('dark');
+						sunIcon.classList.add('hidden');
+						moonIcon.classList.remove('hidden');
+					} else {
+						html.classList.remove('dark');
+						sunIcon.classList.remove('hidden');
+						moonIcon.classList.add('hidden');
+					}
+				}
+
+				// Инициализация
+				const initialTheme = getPreferredTheme();
+				applyTheme(initialTheme);
+
+				// Переключение по клику
+				themeToggle.addEventListener('click', function() {
+					const isDark = html.classList.contains('dark');
+					const newTheme = isDark ? 'light' : 'dark';
+					localStorage.setItem('theme', newTheme);
+					applyTheme(newTheme);
+				});
+			})();
+		</script>
+		{% block extra_js %}{% endblock %}
+	</body>
+</html>

@@ -1,0 +1,98 @@
+<!-- templates/catalog/computers_section.html -->
+<div class="mb-8">
+    <h2 class="text-2xl font-bold mb-8 text-gray-900 dark:text-white">Варианты сборок</h2>
+    
+    {% if computers %}
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {% for computer in computers %}
+            <div class="bg-white dark:bg-[#28303F] shadow-md rounded-xl overflow-hidden transition-all duration-300 hover:scale-105 hover:shadow-2xl border border-gray-200 dark:border-gray-700">
+                <!-- Заголовок с уровнем -->
+                <div class="p-6 pb-4">
+                    <div class="flex items-center justify-between mb-4">
+                        <span class="text-sm font-medium px-3 py-1 rounded-full 
+                            {% if computer.computer.level == 'start' %}bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-300
+                            {% elif computer.computer.level == 'pro' %}bg-orange-100 dark:bg-orange-900 text-orange-800 dark:text-orange-300
+                            {% elif computer.computer.level == 'ultra' %}bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-300
+                            {% endif %}">
+                            {{ computer.computer.get_level_display }}
+                        </span>
+                    </div>
+                    <h3 class="text-xl font-bold mb-2 text-gray-900 dark:text-white">{{ computer.computer.name }}</h3>
+                    {% if computer.computer.description %}
+                      <p class="text-gray-600 dark:text-gray-400 text-sm mb-2">{{ computer.computer.description }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- Характеристики -->
+                <div class="px-6 pb-6">
+                    <div class="space-y-3">
+                        {% if computer.processor %}
+                        <div class="flex items-center space-x-2">
+                            <span class="text-green-500 dark:text-green-400">✓</span>
+                            <span class="text-sm text-gray-700 dark:text-gray-300">{{ computer.processor }}</span>
+                        </div>
+                        {% endif %}
+                        
+                        {% if computer.graphics_card %}
+                        <div class="flex items-center space-x-2">
+                            <span class="text-green-500 dark:text-green-400">✓</span>
+                            <span class="text-sm text-gray-700 dark:text-gray-300">{{ computer.graphics_card }}</span>
+                        </div>
+                        {% endif %}
+                        
+                        {% if computer.ram %}
+                        <div class="flex items-center space-x-2">
+                            <span class="text-green-500 dark:text-green-400">✓</span>
+                            <span class="text-sm text-gray-700 dark:text-gray-300">{{ computer.ram }}</span>
+                        </div>
+                        {% endif %}
+                        
+                        {% if computer.storage %}
+                        <div class="flex items-center space-x-2">
+                            <span class="text-green-500 dark:text-green-400">✓</span>
+                            <span class="text-sm text-gray-700 dark:text-gray-300">{{ computer.storage }}</span>
+                        </div>
+                        {% endif %}
+                        
+                        {% if computer.motherboard %}
+                        <div class="flex items-center space-x-2">
+                            <span class="text-green-500 dark:text-green-400">✓</span>
+                            <span class="text-sm text-gray-700 dark:text-gray-300">{{ computer.motherboard }}</span>
+                        </div>
+                        {% endif %}
+                        
+                        {% if computer.power_supply %}
+                        <div class="flex items-center space-x-2">
+                            <span class="text-green-500 dark:text-green-400">✓</span>
+                            <span class="text-sm text-gray-700 dark:text-gray-300">{{ computer.power_supply }}</span>
+                        </div>
+                        {% endif %}
+                        
+                        {% if computer.case %}
+                        <div class="flex items-center space-x-2">
+                            <span class="text-green-500 dark:text-green-400">✓</span>
+                            <span class="text-sm text-gray-700 dark:text-gray-300">{{ computer.case }}</span>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Цена и кнопка -->
+                <div class="px-6 pb-6">
+                    <div class="flex items-center justify-between">
+                        <div class="text-2xl font-bold text-gray-900 dark:text-white">{{ computer.computer.formatted_price }}</div>
+                        <button onclick="loadPrebuiltConfig({{ computer.computer.id }})" class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200 font-medium">
+                            Загрузить в конфигуратор
+                        </button>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="text-center py-12">
+            <div class="text-gray-600 dark:text-gray-400 text-lg mb-4">Компьютеры для данной категории пока не добавлены</div>
+            <p class="text-gray-500 dark:text-gray-500">Попробуйте выбрать другую категорию</p>
+        </div>
+    {% endif %}
+</div>

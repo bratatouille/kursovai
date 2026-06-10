@@ -1,0 +1,105 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="min-h-screen py-10">
+  <div class="max-w-7xl mx-auto">
+    <h1 class="text-3xl font-bold text-black dark:text-white mb-8">Избранное</h1>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+      {% for fav in favorites %}
+      <div class="bg-white dark:bg-[#1a2230] rounded-2xl overflow-hidden relative flex flex-col shadow-lg">
+        <!-- Кнопка удалить из избранного -->
+        <button type="button" class="absolute top-4 right-4 z-20 flex items-center justify-center w-9 h-9 text-xl bg-white dark:bg-[#1a2230] rounded-full shadow-lg remove-fav-btn text-red-500 border border-[#e5e7eb] dark:border-[#363b4a] hover:bg-red-100 dark:hover:bg-red-900 transition" data-product-id="{{ fav.product.id }}" title="Удалить из избранного">
+          <span class="block leading-none">&times;</span>
+        </button>
+        <a href="/catalog/{{ fav.product.category.product_line.slug }}/{{ fav.product.category.slug }}/{{ fav.product.slug }}/" class="block">
+          <div class="bg-[#e5e7eb] dark:bg-[#23283a] flex items-center justify-center w-full h-[220px] text-[#b0b0b0] dark:text-[#7a8599] text-3xl font-bold rounded-t-2xl">
+            {% if fav.product.image %}
+              <img src="{{ fav.product.image.url }}" alt="{{ fav.product.name }}" class="w-full h-full object-cover rounded-t-2xl">
+            {% else %}
+              300 × 300
+            {% endif %}
+          </div>
+        </a>
+        <div class="p-6 flex-1 flex flex-col">
+          <a href="/catalog/{{ fav.product.category.product_line.slug }}/{{ fav.product.category.slug }}/{{ fav.product.slug }}/" class="block">
+            <div class="text-black dark:text-white font-bold text-xl mb-3 hover:text-purple-400 transition-colors">{{ fav.product.name }}</div>
+          </a>
+          <div class="flex justify-between items-center mb-4">
+            <span class="text-black dark:text-white text-lg font-bold">{{ fav.product.price|floatformat:0 }} ₽</span>
+            <span class="text-[#b0b0b0] dark:text-[#7a8599] text-base">В наличии: {{ fav.product.stock|default:'12' }} шт.</span>
+          </div>
+          <button type="button" class="cart-btn bg-[#7a85ff] hover:bg-[#4b1bb3] text-white w-full py-3 rounded-xl text-lg font-semibold z-20 relative transition-colors mt-auto" data-product-slug="{{ fav.product.slug }}">
+            {% if fav.product.id in cart_product_ids %}Убрать из корзины{% else %}В корзину{% endif %}
+          </button>
+        </div>
+      </div>
+      {% empty %}
+      <div class="col-span-full text-center text-black dark:text-white py-12">У вас нет избранных товаров.</div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Удалить из избранного
+    document.querySelectorAll('.remove-fav-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const productId = this.dataset.productId;
+            const card = this.closest('.rounded-2xl');
+            fetch('/favorites/remove/', {
+                method: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: new URLSearchParams({product_id: productId})
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success && card) {
+                    card.style.transition = 'opacity 0.3s, transform 0.3s';
+                    card.style.opacity = '0';
+                    card.style.transform = 'scale(0.95)';
+                    setTimeout(() => card.remove(), 300);
+                }
+            });
+        });
+    });
+    // Добавить/убрать из корзины
+    document.querySelectorAll('.cart-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const productSlug = this.dataset.productSlug;
+            const inCart = this.textContent.trim() === 'Убрать из корзины';
+            const url = inCart ? `/cart/remove/${productSlug}/` : `/cart/add/${productSlug}/`;
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRFToken': getCookie('csrftoken')
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    this.textContent = inCart ? 'В корзину' : 'Убрать из корзины';
+                }
+            });
+        });
+    });
+});
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+</script>
+{% endblock %}

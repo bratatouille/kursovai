@@ -1,0 +1,410 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="min-h-screen py-10">
+  <div class="max-w-7xl mx-auto flex flex-col lg:flex-row gap-8">
+    <div class="flex-1">
+      <h1 class="text-3xl font-bold text-black dark:text-white mb-8">Корзина</h1>
+      <div class="bg-white dark:bg-[#28303F] rounded-2xl p-8 shadow-lg">
+        {% for item in cart_items %}
+        <div class="cart-item flex items-center gap-8 py-6 border-b border-[#e5e7eb] dark:border-[#363b4a] last:border-b-0 rounded-2xl" 
+             data-product-id="{{ item.product.id }}" 
+             data-stock="{{ item.product.stock|default:99 }}">
+          <a href="/catalog/{{ item.product.category.product_line.slug }}/{{ item.product.category.slug }}/{{ item.product.slug }}/" class="block">
+            <div class="w-[180px] h-[150px] bg-[#e5e7eb] dark:bg-[#28303F] flex items-center justify-center rounded-xl text-3xl text-[#b0b0b0] dark:text-[#7a8599] font-bold shrink-0">
+              {% if item.product.image %}
+                <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}" class="w-full h-full object-cover rounded-xl">
+              {% else %}
+                360 × 300
+              {% endif %}
+            </div>
+          </a>
+          <div class="flex-1 flex flex-col gap-2">
+            <a href="/catalog/{{ item.product.category.product_line.slug }}/{{ item.product.category.slug }}/{{ item.product.slug }}/" class="block">
+              <div class="text-black dark:text-white text-xl font-semibold hover:text-purple-400 transition-colors">{{ item.product.name }}</div>
+            </a>
+            <div class="text-[#b0b0b0] dark:text-[#7a8599] text-lg">{{ item.product.final_price|floatformat:0 }} ₽</div>
+            <div class="text-[#b0b0b0] dark:text-[#7a8599] text-sm">В наличии: {{ item.product.stock|default:"много" }} шт.</div>
+            <div class="flex items-center gap-2 mt-2">
+              <button class="qty-btn bg-[#e5e7eb] dark:bg-[#23283a] border border-[#e5e7eb] dark:border-[#363b4a] text-black dark:text-white rounded px-3 py-1 text-lg font-bold" 
+                      data-action="decrease" 
+                      data-product-id="{{ item.product.id }}">-</button>
+              <span class="text-black dark:text-white text-lg font-bold qty-value">{{ item.quantity }}</span>
+              <button class="qty-btn bg-[#e5e7eb] dark:bg-[#23283a] border border-[#e5e7eb] dark:border-[#363b4a] text-black dark:text-white rounded px-3 py-1 text-lg font-bold" 
+                      data-action="increase" 
+                      data-product-id="{{ item.product.id }}">+</button>
+            </div>
+          </div>
+          <div class="flex flex-col items-end gap-2">
+            <button class="remove-cart-btn text-[#b0b0b0] dark:text-[#7a8599] text-2xl hover:text-red-500 transition" 
+                    data-product-id="{{ item.product.id }}">&times;</button>
+          </div>
+        </div>
+        {% empty %}
+        <div class="text-black dark:text-white text-center py-12">Ваша корзина пуста.</div>
+        {% endfor %}
+      </div>
+    </div>
+    <div class="w-full lg:w-[400px] flex-shrink-0">
+      <div class="bg-white dark:bg-[#28303F] rounded-2xl p-8 shadow-lg flex flex-col gap-6">
+        <div>
+          <div class="text-black dark:text-white text-xl font-bold mb-4">Итого</div>
+          
+          <!-- Сумма заказа -->
+          <div class="flex justify-between text-[#b0b0b0] dark:text-[#7a8599] text-base mb-2">
+            <span>Сумма заказа:</span>
+            <span id="order-sum">{{ total_sum|floatformat:0 }} ₽</span>
+          </div>
+          
+          <!-- Примененный промокод -->
+          {% if applied_promocode %}
+          <div id="promocode-applied" class="mb-4 p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
+            <div class="flex justify-between items-center mb-2">
+              <span class="text-green-700 dark:text-green-300 font-medium">Промокод: {{ applied_promocode.code }}</span>
+              <button id="remove-promocode-btn" class="text-red-500 hover:text-red-700 text-sm">&times;</button>
+            </div>
+            <div class="flex justify-between text-green-600 dark:text-green-400 text-sm">
+              <span>Скидка:</span>
+              <span id="discount-amount">-{{ discount_amount|floatformat:0 }} ₽</span>
+            </div>
+          </div>
+          {% endif %}
+          
+          <!-- Поле ввода промокода -->
+          <div id="promocode-input" class="flex gap-2 mb-4 {% if applied_promocode %}hidden{% endif %}">
+            <input type="text" id="promocode-field" class="flex-1 rounded bg-[#e5e7eb] dark:bg-[#1a2230] text-black dark:text-white px-4 py-2 border border-[#e5e7eb] dark:border-[#363b4a] focus:outline-none focus:border-[#7a85ff]" placeholder="Введите промокод" maxlength="50">
+            <button id="apply-promocode-btn" class="bg-[#7a85ff] hover:bg-[#4b1bb3] text-white px-4 py-2 rounded font-semibold transition-colors">ОК</button>
+          </div>
+          
+          <!-- Сообщения об ошибках -->
+          <div id="promocode-error" class="hidden mb-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+            <span class="text-red-700 dark:text-red-300 text-sm"></span>
+          </div>
+          
+          <!-- Итоговая сумма -->
+          <div class="flex justify-between text-black dark:text-white text-lg font-bold mb-4">
+            <span>К оплате:</span>
+            <span id="final-total">{{ final_total|floatformat:0 }} ₽</span>
+          </div>
+          
+                  <!-- Кнопка оформления заказа -->
+          {% if cart_items %}
+          <a href="{% url 'order:checkout' %}" class="w-full bg-[#7a85ff] hover:bg-[#4b1bb3] text-white py-4 rounded-xl text-lg font-bold transition-colors block text-center">
+            ОФОРМИТЬ ЗАКАЗ
+          </a>
+          {% else %}
+          <button disabled class="w-full bg-gray-400 text-white py-4 rounded-xl text-lg font-bold cursor-not-allowed">
+            КОРЗИНА ПУСТА
+          </button>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+function updateCartSums() {
+    fetch('/cart/', {
+        method: 'GET',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(response => response.text())
+    .then(html => {
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, 'text/html');
+        
+        const newOrderSum = doc.getElementById('order-sum');
+        const newFinalTotal = doc.getElementById('final-total');
+        const newPromocodeApplied = doc.getElementById('promocode-applied');
+        const currentPromocodeApplied = document.getElementById('promocode-applied');
+        
+        if (newOrderSum) {
+            document.getElementById('order-sum').textContent = newOrderSum.textContent;
+        }
+        
+        if (newFinalTotal) {
+            document.getElementById('final-total').textContent = newFinalTotal.textContent;
+        }
+        
+        // Проверяем, не исчез ли примененный промокод
+        if (currentPromocodeApplied && !newPromocodeApplied) {
+            // Промокод был удален на сервере, обновляем интерфейс
+            currentPromocodeApplied.remove();
+            document.getElementById('promocode-input').classList.remove('hidden');
+            showError('Промокод больше не действителен и был удален');
+        }
+        
+        // Проверяем, не пуста ли корзина
+        const cartItems = document.querySelectorAll('.cart-item');
+        if (cartItems.length === 0) {
+            const cartContainer = document.querySelector('.bg-white.dark\\:bg-\\[\\#23283a\\] .rounded-2xl');
+            if (cartContainer && !cartContainer.querySelector('.text-center')) {
+                cartContainer.innerHTML = '<div class="text-black dark:text-white text-center py-12">Ваша корзина пуста.</div>';
+            }
+        }
+    })
+    .catch(error => {
+        console.error('Ошибка при обновлении корзины:', error);
+    });
+}
+
+function showError(message) {
+    const errorDiv = document.getElementById('promocode-error');
+    if (errorDiv) {
+        errorDiv.querySelector('span').textContent = message;
+        errorDiv.classList.remove('hidden');
+        setTimeout(() => {
+            errorDiv.classList.add('hidden');
+        }, 5000);
+    }
+}
+
+function applyPromocode() {
+    const promocodeField = document.getElementById('promocode-field');
+    const promocode = promocodeField.value.trim();
+    
+    if (!promocode) {
+        showError('Введите промокод');
+        return;
+    }
+    
+    const applyBtn = document.getElementById('apply-promocode-btn');
+    applyBtn.disabled = true;
+    applyBtn.textContent = '...';
+    
+    fetch('/cart/apply-promocode/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken')
+        },
+        body: JSON.stringify({promocode: promocode})
+    })
+    .then(response => response.json())
+    .then(data => {
+        console.log('Promocode response:', data); // Для отладки
+        if (data.success) {
+            promocodeField.value = '';
+            
+            // Скрываем поле ввода
+            const promocodeInput = document.getElementById('promocode-input');
+            promocodeInput.classList.add('hidden');
+            
+            // Создаем блок примененного промокода
+            const appliedHtml = `
+                <div id="promocode-applied" class="mb-4 p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-green-700 dark:text-green-300 font-medium">Промокод: ${data.promocode.code}</span>
+                        <button id="remove-promocode-btn" class="text-red-500 hover:text-red-700 text-sm">&times;</button>
+                    </div>
+                    <div class="flex justify-between text-green-600 dark:text-green-400 text-sm">
+                        <span>Скидка:</span>
+                        <span id="discount-amount">-${Math.round(data.promocode.discount_amount)} ₽</span>
+                    </div>
+                </div>
+            `;
+            promocodeInput.insertAdjacentHTML('beforebegin', appliedHtml);
+            
+            // Обновляем суммы
+            document.getElementById('order-sum').textContent = Math.round(data.promocode.total_sum) + ' ₽';
+            document.getElementById('final-total').textContent = Math.round(data.promocode.final_total) + ' ₽';
+            
+            // Привязываем события к новой кнопке удаления
+            bindPromocodeEvents();
+            
+        } else {
+            showError(data.error);
+        }
+    })
+    .catch(error => {
+        console.error('Promocode error:', error); // Для отладки
+        showError('Произошла ошибка при применении промокода');
+    })
+    .finally(() => {
+        applyBtn.disabled = false;
+        applyBtn.textContent = 'ОК';
+    });
+}
+
+function removePromocode() {
+    fetch('/cart/remove-promocode/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken')
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        console.log('Remove promocode response:', data); // Для отладки
+        if (data.success) {
+            // Удаляем блок примененного промокода
+            const promocodeApplied = document.getElementById('promocode-applied');
+            if (promocodeApplied) {
+                promocodeApplied.remove();
+            }
+            
+            // Показываем поле ввода
+            document.getElementById('promocode-input').classList.remove('hidden');
+            
+            // Обновляем суммы
+            document.getElementById('order-sum').textContent = Math.round(data.total_sum) + ' ₽';
+            document.getElementById('final-total').textContent = Math.round(data.final_total) + ' ₽';
+        } else {
+            showError(data.error || 'Ошибка при удалении промокода');
+        }
+    })
+    .catch(error => {
+        console.error('Remove promocode error:', error); // Для отладки
+        showError('Произошла ошибка при удалении промокода');
+    });
+}
+
+function bindPromocodeEvents() {
+    // Удаление промокода
+    const removeBtn = document.getElementById('remove-promocode-btn');
+    if (removeBtn) {
+        removeBtn.addEventListener('click', removePromocode);
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Применение промокода
+    const applyBtn = document.getElementById('apply-promocode-btn');
+    if (applyBtn) {
+        applyBtn.addEventListener('click', applyPromocode);
+    }
+    
+    // Применение промокода по Enter
+    const promocodeField = document.getElementById('promocode-field');
+    if (promocodeField) {
+        promocodeField.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                applyPromocode();
+            }
+        });
+    }
+    
+    // Привязываем события к кнопке удаления промокода (если есть)
+    bindPromocodeEvents();
+    
+    // Изменение количества
+    document.querySelectorAll('.qty-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const productId = this.dataset.productId;
+            const action = this.dataset.action;
+            const cartItem = this.closest('.cart-item');
+            let qty = parseInt(cartItem.querySelector('.qty-value').textContent);
+            const stock = parseInt(cartItem.dataset.stock) || 99;
+            
+            if (action === 'decrease' && qty <= 1) return;
+            if (action === 'increase' && qty >= stock) {
+                alert('Недостаточно товара на складе');
+                return;
+            }
+            
+            this.disabled = true;
+            
+            fetch('/cart/' + (action === 'increase' ? 'add/' : 'remove/'), {
+                method: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: new URLSearchParams({product_id: productId})
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    if (action === 'increase') {
+                        qty++;
+                        cartItem.querySelector('.qty-value').textContent = qty;
+                    } else {
+                        qty--;
+                        if (qty === 0 || data.removed) {
+                            cartItem.style.transition = 'opacity 0.3s, transform 0.3s';
+                            cartItem.style.opacity = '0';
+                            cartItem.style.transform = 'scale(0.95)';
+                            setTimeout(() => {
+                                cartItem.remove();
+                                updateCartSums();
+                            }, 300);
+                            this.disabled = false;
+                            return;
+                        } else {
+                            cartItem.querySelector('.qty-value').textContent = qty;
+                        }
+                    }
+                    updateCartSums();
+                }
+            })
+            .catch(error => {
+                console.error('Ошибка при изменении количества:', error);
+            })
+            .finally(() => {
+                this.disabled = false;
+            });
+        });
+    });
+    
+    // Полное удаление товара
+    document.querySelectorAll('.remove-cart-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const productId = this.dataset.productId;
+            const cartItem = this.closest('.cart-item');
+            
+            this.disabled = true;
+            
+            fetch('/cart/delete/', {
+                method: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: new URLSearchParams({product_id: productId})
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success && cartItem) {
+                    cartItem.style.transition = 'opacity 0.3s, transform 0.3s';
+                    cartItem.style.opacity = '0';
+                    cartItem.style.transform = 'scale(0.95)';
+                    setTimeout(() => {
+                        cartItem.remove();
+                        updateCartSums();
+                    }, 300);
+                }
+            })
+            .catch(error => {
+                console.error('Ошибка при удалении товара:', error);
+                this.disabled = false;
+            });
+        });
+    });
+});
+</script>
+{% endblock %}
+

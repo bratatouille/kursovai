@@ -1,0 +1,419 @@
+{% extends 'base.html' %}
+{% block content %}
+   <!-- Слайдеры -->
+    <section class="relative py-6 md:py-12">
+        <div class="container mx-auto px-4 relative">
+            <div class="carousel-container relative h-[300px] sm:h-[350px] md:h-80 rounded-xl overflow-hidden">
+                {% for slide in slides %}
+                <div class="carousel-slide {% if forloop.first %}active{% endif %} absolute inset-0 flex items-center transition-opacity duration-700"
+                     aria-hidden="{% if not forloop.first %}true{% else %}false{% endif %}"
+                     tabindex="{% if forloop.first %}0{% else %}-1{% endif %}"
+                     style="{% if slide.image %}background-image: url('{% autoescape off %}{{ slide.image.url }}{% endautoescape %}'); background-size:cover; background-position:center;{% else %}background-image: linear-gradient(to right, #2563eb, #8b5cf6);{% endif %}">
+                    <div class="relative z-10 w-full px-4 md:px-8 lg:px-16">
+                        <h2 class="text-2xl sm:text-3xl md:text-4xl font-bold mb-2 md:mb-4 text-white max-w-[90%] md:max-w-[70%] leading-tight">{{ slide.title|linebreaksbr }}</h2>
+                        <p class="text-base sm:text-lg mb-4 md:mb-6 opacity-90 text-white max-w-[90%] md:max-w-[60%]">{{ slide.subtitle }}</p>
+                        <div class="flex flex-wrap gap-3 md:gap-4">
+                            {% if slide.button1_text %}
+                            <a href="{{ slide.button1_url }}" class="bg-blue-600 dark:bg-white text-white dark:text-black px-4 sm:px-6 py-2 sm:py-3 text-sm sm:text-base rounded-lg font-semibold hover:bg-blue-700 dark:hover:bg-gray-100 transition-colors">{{ slide.button1_text }}</a>
+                            {% endif %}
+                            {% if slide.button2_text %}
+                            <a href="{{ slide.button2_url }}" class="bg-white dark:bg-transparent border border-white dark:border-white text-black dark:text-white px-4 sm:px-6 py-2 sm:py-3 text-sm sm:text-base rounded-lg font-semibold hover:bg-gray-100 dark:hover:bg-white/10 hover:text-black dark:hover:text-white transition-colors">{{ slide.button2_text }}</a>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="flex-1 flex justify-center">
+                        <!-- Можно убрать картинку, если она уже на фоне -->
+                    </div>
+                </div>
+                {% endfor %}
+                <!-- Стрелки -->
+                <button class="carousel-arrow left-2 top-1/2 -translate-y-1/2 absolute z-20 bg-white/70 hover:bg-white text-blue-600 rounded-full w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center shadow transition" id="carousel-prev" aria-label="Предыдущий слайд">
+                    <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+                </button>
+                <button class="carousel-arrow right-2 top-1/2 -translate-y-1/2 absolute z-20 bg-white/70 hover:bg-white text-blue-600 rounded-full w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center shadow transition" id="carousel-next" aria-label="Следующий слайд">
+                    <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+                </button>
+            </div>
+            <!-- Навигация по кружочкам -->
+            <div class="flex justify-center space-x-2 mt-4 md:mt-6">
+                <button class="carousel-dot w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-blue-500 transition-all duration-300" data-slide="0" aria-label="Слайд 1"></button>
+                <button class="carousel-dot w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-gray-500 hover:bg-gray-400 transition-all duration-300" data-slide="1" aria-label="Слайд 2"></button>
+                <button class="carousel-dot w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-gray-500 hover:bg-gray-400 transition-all duration-300" data-slide="2" aria-label="Слайд 3"></button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Популярные товарыф-->
+    <section class="py-12 bg-white dark:bg-[#1a2230]">
+        <div class="container mx-auto px-4">
+            <h2 class="text-3xl font-bold text-center text-gray-800 dark:text-white mb-10">Популярные товары</h2>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+                {% for product in popular_products %}
+                    {% include 'store/product_card.html' with product=product %}
+                {% empty %}
+                    <p class="text-center text-gray-500 col-span-full">Популярные товары скоро появятся!</p>
+                {% endfor %}
+            </div>
+        </div>
+    </section>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // КорзинаAdd commentMore actions
+            document.querySelectorAll('.cart-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const productSlug = this.dataset.productSlug;
+                    const inCart = this.textContent.trim() === 'Убрать из корзины';
+                    const url = inCart ? `/cart/remove/${productSlug}/` : `/cart/add/${productSlug}/`;
+                    fetch(url, {
+                        method: 'POST',
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'X-CSRFToken': getCookie('csrftoken')
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            this.textContent = inCart ? 'В корзину' : 'Убрать из корзины';
+                        }
+                    });
+                });
+            });
+            // Избранное
+            document.querySelectorAll('.wishlist-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const productSlug = this.dataset.productSlug;
+                    const url = `/favorites/toggle/${productSlug}/`;
+                    fetch(url, {
+                        method: 'POST',
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'X-CSRFToken': getCookie('csrftoken')
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            if (this.classList.contains('text-purple-500')) {
+                                this.classList.remove('text-purple-500');
+                                this.classList.add('text-black', 'dark:text-white');
+                                this.querySelector('svg').setAttribute('fill', 'none');
+                            } else {
+                                this.classList.remove('text-black', 'dark:text-white');
+                                this.classList.add('text-purple-500');
+                                this.querySelector('svg').setAttribute('fill', 'currentColor');
+                            }
+                        }
+                    });
+                });
+            });
+        
+            // Эффект смены изображения при наведении
+            document.querySelectorAll('.product-card-image').forEach(img => {
+                const mainImage = img.dataset.mainImage;
+                const secondaryImage = img.dataset.secondaryImage;
+        
+                if (secondaryImage && mainImage !== secondaryImage) {
+                    const parentLink = img.closest('a');
+                    if (parentLink) {
+                        parentLink.addEventListener('mouseenter', () => {
+                            img.src = secondaryImage;
+                        });
+                        parentLink.addEventListener('mouseleave', () => {
+                            img.src = mainImage;
+                        });
+                    }
+                }
+            });
+        });
+        
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+        </script>
+
+    <!-- Готовые пк -->
+    <section class="py-12 bg-[#FFDDDD] dark:bg-[#28303F]">
+        <div class="container mx-auto px-4">
+            <div class="flex flex-col lg:flex-row items-center gap-8">
+                <div class="flex-1">
+                    <div class="grid grid-cols-3 gap-4">
+                        <img src="/media/pc1.png" alt="Картинка ПК1" class="w-full rounded-lg">
+                        <img src="/media/pc2.webp" alt="Картинка ПК2" class="w-full rounded-lg">
+                        <img src="/media/pc3.webp" alt="Картинка ПК3" class="w-full rounded-lg">
+                    </div>
+                </div>
+                <div class="flex-1">
+                    <h2 class="text-4xl font-bold text-black dark:text-white mb-4">Готовые ПК под любые задачи</h2>
+                    <p class="text-lg text-[#b0b0b0] dark:text-[#7a8599] mb-6">Лучшие решения от фоисных до профессиональных</p>
+                    <button class="bg-[#7a85ff] hover:bg-[#4b1bb3] text-white px-8 py-3 rounded-lg font-semibold transition-colors"><a href="{% url 'core:computer_catalog' %}">КУПИТЬ СЕЙЧАС</a></button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Конфигуратор -->
+    <section class="py-12 bg-[#D9FBFA] dark:bg-[#23283a]">
+        <div class="container mx-auto px-4">
+            <div class="flex flex-col lg:flex-row items-center gap-8">
+                <div class="flex-1">
+                    <h2 class="text-4xl font-bold text-black dark:text-white mb-4">Удобный конфигуратор ПК</h2>
+                    <p class="text-lg text-[#b0b0b0] dark:text-[#7a8599] mb-6">Выберите свой идеальный компьютер, который подойдёт именно вам</p>
+                    <button class="bg-white text-[#7a85ff] hover:bg-gray-100 px-8 py-3 rounded-lg font-semibold transition-colors"><a href="{% url 'pcbuilder:pcbuilder' %}">СОБРАТЬ ПК</a></button>
+                </div>
+                <div class="flex-1">
+                    <img src="/media/conf.png" alt="Картинка конфигуратора" class="w-full rounded-lg">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Категории -->
+    <section class="py-12 bg-[#E2F0FF] dark:bg-[#1a2230]">
+        <div class="container mx-auto px-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div class="text-center">
+                    <h3 class="text-2xl font-bold text-black dark:text-white mb-4">КОМПЛЕКТУЮЩИЕ</h3>
+                    <p class="text-[#b0b0b0] dark:text-[#7a8599] mb-6">Процессоры всех самых современных марок-производителей, видеокарты, материнские платы и многое другое</p>
+                    <button class="bg-[#7a85ff] hover:bg-[#4b1bb3] text-white px-6 py-3 rounded-lg font-semibold transition-colors"><a href="{% url 'store:product_line_detail' 'komplektuyushchie' %}">КУПИТЬ СЕЙЧАС</a></button>
+                    <div class="mt-6">
+                        <img src="/media/komp.png" alt="Картинка материнская плата" class="w-full rounded-lg">
+                    </div>
+                </div>
+                <div class="text-center">
+                    <h3 class="text-2xl font-bold text-black dark:text-white mb-4">КОМПЬЮТЕРНАЯ ПЕРИФЕРИЯ</h3>
+                    <p class="text-[#b0b0b0] dark:text-[#7a8599] mb-6">Вооружитесь с самым лучшим в мире оружием геймера и аксессуарами: мониторы, клавиатуры и многое другое</p>
+                    <button class="bg-[#7a85ff] hover:bg-[#4b1bb3] text-white px-6 py-3 rounded-lg font-semibold transition-colors"><a href="{% url 'store:product_line_detail' 'pereferiya' %}">КУПИТЬ СЕЙЧАС</a></button>
+                    <div class="mt-6">
+                        <img src="/media/perf.png" alt="Картинка периферия" class="w-full rounded-lg">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Преимущества -->
+    <section class="py-12 bg-[#e5e7eb] dark:bg-[#23283a]">
+        <div class="container mx-auto px-4">
+            <h2 class="text-3xl font-bold text-black dark:text-white text-center mb-12">Наши преимущества</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {% for adv in advantages %}
+                <div class="text-center">
+                    <div class="w-16 h-16 flex items-center justify-center mx-auto mb-4 bg-white dark:bg-[#1a2230] border rounded-full shadow-lg" style="border-color: {{ adv.color }};">
+                        {% if adv.icon == 'star' %}
+                        <svg class="w-8 h-8" fill="none" stroke="{{ adv.color }}" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l2.036 6.29a1 1 0 00.95.69h6.6c.969 0 1.371 1.24.588 1.81l-5.347 3.89a1 1 0 00-.364 1.118l2.036 6.29c.3.921-.755 1.688-1.54 1.118l-5.347-3.89a1 1 0 00-1.176 0l-5.347 3.89c-.784.57-1.838-.197-1.54-1.118l2.036-6.29a1 1 0 00-.364-1.118l-5.347-3.89c-.783-.57-.38-1.81.588-1.81h6.6a1 1 0 00.95-.69l2.036-6.29z"/></svg>
+                        {% elif adv.icon == 'shield' %}
+                        <svg class="w-8 h-8" fill="none" stroke="{{ adv.color }}" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 22s8-4 8-10V5.236a1 1 0 00-.553-.894l-7-3.5a1 1 0 00-.894 0l-7 3.5A1 1 0 004 5.236V12c0 6 8 10 8 10z"/></svg>
+                        {% elif adv.icon == 'support' %}
+                        <svg class="w-8 h-8" fill="none" stroke="{{ adv.color }}" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke-width="2"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 15a4 4 0 008 0M9 9h.01M15 9h.01"/></svg>
+                        {% elif adv.icon == 'rocket' %}
+                        <svg class="w-8 h-8" fill="none" stroke="{{ adv.color }}" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7M5 13l-1.5 4.5a.5.5 0 00.6.6L11 19M5 13l6-6 4 4-6 6z"/></svg>
+                        {% elif adv.icon == 'gift' %}
+                        <svg class="w-8 h-8" fill="none" stroke="{{ adv.color }}" viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="10" rx="2" stroke-width="2"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 7V3m0 4a3 3 0 11-6 0 3 3 0 016 0zm0 0a3 3 0 016 0 3 3 0 01-6 0z"/></svg>
+                        {% elif adv.icon == 'heart' %}
+                        <svg class="w-8 h-8" fill="none" stroke="{{ adv.color }}" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
+                        {% endif %}
+                    </div>
+                    <h3 class="text-xl font-bold text-black dark:text-white mb-2">{{ adv.title }}</h3>
+                    <p class="text-[#4b5563] dark:text-[#b0b0b0]">{{ adv.description }}</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </section>
+
+    <!-- Промокод-->
+    <section class="py-12 bg-gradient-to-r from-blue-600 to-purple-600" >
+        <div class="container mx-auto px-4 flex flex-col items-center justify-center">
+            <div class="max-w-2xl w-full mx-auto bg-white/90 dark:bg-[#23283a]/90 rounded-2xl shadow-xl p-10 flex flex-col items-center">
+                <div class="bg-[#7a85ff] text-white px-4 py-2 rounded-full text-sm font-semibold mb-4">Только сейчас</div>
+                <h2 class="text-4xl font-bold text-center text-[#23283a] dark:text-white mb-4">Скидка 10% на первый заказ</h2>
+                <p class="text-lg text-center text-[#4b5563] dark:text-[#b0b0b0] mb-8 opacity-90">Подпишитесь на рассылку и получите промокод на скидку</p>
+                <form class="flex flex-col sm:flex-row gap-4 w-full max-w-md mx-auto" id="newsletter-form">
+                    <input type="email" placeholder="Ваш email" class="flex-1 px-4 py-3 rounded-lg text-[#23283a] dark:text-white bg-gray-100 dark:bg-[#1a2230] focus:outline-none focus:ring-2 focus:ring-[#7a85ff]" required>
+                    <button type="submit" class="bg-[#7a85ff] hover:bg-[#4b1bb3] text-white px-6 py-3 rounded-lg font-semibold transition-colors">ПОЛУЧИТЬ СКИДКУ</button>
+                </form>
+                <div id="newsletter-success" class="hidden mt-4 text-green-600 font-semibold text-center">Спасибо за подписку! Промокод отправлен на ваш email.</div>
+                <div id="newsletter-error" class="hidden mt-4 text-red-600 font-semibold text-center">Пожалуйста, введите корректный email адрес.</div>
+            </div>
+        </div>
+    </section>
+
+    <style>
+        .carousel-slide { opacity: 0; pointer-events: none; z-index: 0; }
+        .carousel-slide.active { opacity: 1; pointer-events: auto; z-index: 10; }
+    </style>
+    <script>
+        // Карусель слайдов
+        let currentSlide = 0;
+        const slides = document.querySelectorAll('.carousel-slide');
+        const dots = document.querySelectorAll('.carousel-dot');
+        const prevBtn = document.getElementById('carousel-prev');
+        const nextBtn = document.getElementById('carousel-next');
+        let carouselInterval;
+
+        function showSlide(index) {
+            slides.forEach((slide, i) => {
+                slide.classList.toggle('active', i === index);
+                slide.setAttribute('aria-hidden', i !== index);
+                slide.setAttribute('tabindex', i === index ? '0' : '-1');
+            });
+            dots.forEach((dot, i) => {
+                if (i === index) {
+                    dot.classList.remove('bg-gray-500', 'hover:bg-gray-400');
+                    dot.classList.add('bg-blue-500');
+                } else {
+                    dot.classList.remove('bg-blue-500');
+                    dot.classList.add('bg-gray-500', 'hover:bg-gray-400');
+                }
+            });
+            currentSlide = index;
+        }
+
+        function nextSlide() {
+            showSlide((currentSlide + 1) % slides.length);
+        }
+        function prevSlide() {
+            showSlide((currentSlide - 1 + slides.length) % slides.length);
+        }
+        function startCarousel() {
+            carouselInterval = setInterval(nextSlide, 5000);
+        }
+        function stopCarousel() {
+            clearInterval(carouselInterval);
+        }
+        // Иницализация
+        showSlide(currentSlide);
+        startCarousel();
+        // Навигация
+        dots.forEach((dot, index) => {
+            dot.addEventListener('click', () => {
+                showSlide(index);
+                stopCarousel();
+                startCarousel();
+            });
+        });
+        // Стеркли
+        prevBtn.addEventListener('click', () => {
+            prevSlide();
+            stopCarousel();
+            startCarousel();
+        });
+        nextBtn.addEventListener('click', () => {
+            nextSlide();
+            stopCarousel();
+            startCarousel();
+        });
+        
+        // Эффет появления
+        document.querySelectorAll('.product-card').forEach(card => {
+            card.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-5px)';
+                this.style.boxShadow = '0 10px 30px rgba(59, 130, 246, 0.3)';
+            });
+            
+            card.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateY(0)';
+                this.style.boxShadow = 'none';
+            });
+        });
+        
+        // Плавный скролингн
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth'
+                    });
+                }
+            });
+        });
+        
+        
+     
+        
+        // Рассылка
+        const newsletterForm = document.getElementById('newsletter-form');
+        if (newsletterForm) {
+            newsletterForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                const input = this.querySelector('input[type="email"]');
+                const email = input.value.trim();
+                const successMsg = document.getElementById('newsletter-success');
+                const errorMsg = document.getElementById('newsletter-error');
+                if (email && email.includes('@') && email.includes('.') && email.length > 5) {
+                    // AJAX-запрос на сервер
+                    fetch('/send_promocode/', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                            'X-CSRFToken': getCookie('csrftoken')
+                        },
+                        body: 'email=' + encodeURIComponent(email)
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            successMsg.classList.remove('hidden');
+                            errorMsg.classList.add('hidden');
+                            input.value = '';
+                        } else {
+                            errorMsg.textContent = data.error || 'Ошибка отправки.';
+                            errorMsg.classList.remove('hidden');
+                            successMsg.classList.add('hidden');
+                        }
+                    })
+                    .catch(() => {
+                        errorMsg.textContent = 'Ошибка отправки.';
+                        errorMsg.classList.remove('hidden');
+                        successMsg.classList.add('hidden');
+                    });
+                } else {
+                    errorMsg.textContent = 'Пожалуйста, введите корректный email адрес.';
+                    errorMsg.classList.remove('hidden');
+                    successMsg.classList.add('hidden');
+                }
+            });
+        }
+        
+        // Intersection Observer для анимаций
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+        
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, observerOptions);
+        
+        // Следим за всеми секциями для анимаций при прокрутке
+        document.querySelectorAll('section').forEach(section => {
+            section.style.opacity = '0';
+            section.style.transform = 'translateY(30px)';
+            section.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+            observer.observe(section);
+        });
+        
+        // Первая секция сразу видима
+        document.querySelector('section').style.opacity = '1';
+        document.querySelector('section').style.transform = 'translateY(0)';
+    </script>
+{% endblock %}

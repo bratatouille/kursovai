@@ -1,0 +1,176 @@
+{% extends 'base.html' %}
+{% load catalog_extras %}
+
+{% block content %}
+<!-- Хлебные крошки -->
+<div class="max-w-7xl mx-auto px-4 pt-10 pb-2">
+  <nav class="flex items-center flex-wrap text-xs text-gray-500 dark:text-gray-400">
+    <a href="{% url 'core:index' %}" class="hover:text-[#7a85ff] transition-colors flex items-center">
+      <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+      </svg>
+      Главная
+    </a>
+    <svg class="w-3 h-3 mx-2 text-gray-300 dark:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+    </svg>
+    <a href="{% url 'store:catalog' %}" class="hover:text-[#7a85ff] transition-colors">Каталог</a>
+    <svg class="w-3 h-3 mx-2 text-gray-300 dark:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+    </svg>
+    <a href="{% url 'store:product_line_detail' product_line.slug %}" class="hover:text-[#7a85ff] transition-colors">{{ product_line.name }}</a>
+    <svg class="w-3 h-3 mx-2 text-gray-300 dark:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+    </svg>
+    <span class="text-gray-700 dark:text-gray-300 font-medium">{{ category.name }}</span>
+  </nav>
+</div>
+<div class="min-h-screen py-10">
+  <h1 class="text-3xl font-bold dark:text-white text-center mb-10">Каталог товаров</h1>
+  <!-- Filter button for mobile -->
+  <button id="filter-button" class="lg:hidden bg-[#7a85ff] text-white px-4 py-2 rounded-lg w-full max-w-7xl mx-auto mb-4">
+      Показать фильтры
+  </button>
+  <div class="max-w-7xl mx-auto flex flex-col lg:flex-row">
+    <!-- Фильтры -->
+    <aside id="filter-sidebar" class="w-full mb-8 lg:w-72 lg:mr-8 bg-white dark:bg-[#28303F] rounded-xl p-6 shadow hidden lg:block">
+      <h2 class="text-black dark:text-white font-bold mb-6 text-lg">Фильтры</h2>
+      <form method="get" class="space-y-6">
+        <!-- Фильтр по цене -->
+        <div>
+          <div class="text-black dark:text-white font-semibold mb-2">Цена</div>
+          <div class="flex items-center space-x-2">
+            <input type="number" name="price_from" placeholder="от" value="{{ price_from }}" class="w-24 px-2 py-1 rounded bg-white dark:bg-[#23283a] text-black dark:text-white border border-[#e5e7eb] dark:border-[#2e3743]">
+            <span class="text-[#b0b0b0] dark:text-[#7a8599]">–</span>
+            <input type="number" name="price_to" placeholder="до" value="{{ price_to }}" class="w-24 px-2 py-1 rounded bg-white dark:bg-[#23283a] text-black dark:text-white border border-[#e5e7eb] dark:border-[#2e3743]">
+          </div>
+        </div>
+        <!-- Фильтры по спецификациям -->
+        {% for spec, values in filter_options.items %}
+        <div>
+          <div class="text-black dark:text-white font-semibold mb-2">{{ spec.name }}</div>
+          <div class="space-y-1">
+            {% for value in values %}
+              <label class="flex items-center text-[#b0b0b0] dark:text-[#7a8599]">
+                <input type="checkbox" name="spec_{{ spec.id }}" value="{{ value }}" 
+                  {% if value in selected_specs|get_item:spec.id %}checked{% endif %}
+                  class="mr-2">
+                {{ value }}
+              </label>
+            {% endfor %}
+          </div>
+        </div>
+        {% endfor %}
+        <button type="submit" class="bg-[#7a85ff] text-white px-4 py-2 rounded w-full mt-4">Показать</button>
+      </form>
+    </aside>
+    <!-- Товары -->
+    <main class="flex-1">
+      <h1 class="text-2xl font-bold dark:text-white mb-8">{{ category.name }}</h1>
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+        {% for product in products %}
+          {% include 'store/product_card.html' with product=product %}
+        {% empty %}
+          <div class="col-span-full text-center dark:text-white py-12">В этой категории пока нет товаров.</div>
+        {% endfor %}
+      </div>
+    </main>
+  </div>
+</div>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Корзина
+    document.querySelectorAll('.cart-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const productSlug = this.dataset.productSlug;
+            const inCart = this.textContent.trim() === 'Убрать из корзины';
+            const url = inCart ? `/cart/remove/${productSlug}/` : `/cart/add/${productSlug}/`;
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRFToken': getCookie('csrftoken')
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    this.textContent = inCart ? 'В корзину' : 'Убрать из корзины';
+                }
+            });
+        });
+    });
+    // Избранное
+    document.querySelectorAll('.wishlist-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const productSlug = this.dataset.productSlug;
+            const url = `/favorites/toggle/${productSlug}/`;
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRFToken': getCookie('csrftoken')
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    if (this.classList.contains('text-purple-500')) {
+                        this.classList.remove('text-purple-500');
+                        this.classList.add('text-black', 'dark:text-white');
+                        this.querySelector('svg').setAttribute('fill', 'none');
+                    } else {
+                        this.classList.remove('text-black', 'dark:text-white');
+                        this.classList.add('text-purple-500');
+                        this.querySelector('svg').setAttribute('fill', 'currentColor');
+                    }
+                }
+            });
+        });
+    });
+
+    // Эффект смены изображения при наведении
+    document.querySelectorAll('.product-card-image').forEach(img => {
+        const mainImage = img.dataset.mainImage;
+        const secondaryImage = img.dataset.secondaryImage;
+
+        if (secondaryImage && mainImage !== secondaryImage) {
+            const parentLink = img.closest('a');
+            if (parentLink) {
+                parentLink.addEventListener('mouseenter', () => {
+                    img.src = secondaryImage;
+                });
+                parentLink.addEventListener('mouseleave', () => {
+                    img.src = mainImage;
+                });
+            }
+        }
+    });
+
+    // Filter button functionality
+    const filterButton = document.getElementById('filter-button');
+    const filterSidebar = document.getElementById('filter-sidebar');
+
+    if (filterButton && filterSidebar) {
+        filterButton.addEventListener('click', () => {
+            filterSidebar.classList.toggle('hidden');
+        });
+    }
+});
+
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+</script>
+{% endblock %}

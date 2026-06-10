@@ -1,0 +1,166 @@
+{% extends 'base.html' %}
+{% block content %}
+    <div class="container mx-auto px-4 py-8">
+        <!-- Заголовок -->
+        <div class="mb-12">
+            <h1 class="text-4xl font-bold mb-4 text-gray-900 dark:text-white">Готовые решения</h1>
+            <p class="text-gray-600 dark:text-gray-400 text-lg">Выберите назначение компьютера, и мы предложим оптимальные варианты</p>
+        </div>
+
+        <!-- Категории -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+            {% for category in categories %}
+            <div class="category-card bg-white dark:bg-[#28303F] shadow-md rounded-xl p-6 cursor-pointer transition-all duration-300 hover:bg-gray-50 dark:hover:bg-[#1E242E] hover:scale-105 border border-gray-200 dark:border-gray-700 {% if category.name == selected_category %}ring-2 ring-blue-500 bg-gray-50 dark:bg-[#1E242E]{% endif %}"
+                 data-category="{{ category.name }}">
+                <div class="flex flex-col items-center text-center">
+                    <!-- Иконка -->
+                    <div class="w-16 h-16 bg-gray-100 dark:bg-gray-700 rounded-lg flex items-center justify-center mb-4 text-2xl">
+                        {% if category.name == 'gaming' %}
+                            🎮
+                        {% elif category.name == 'work' %}
+                            💼
+                        {% elif category.name == 'office' %}
+                            🏢
+                        {% elif category.name == 'design' %}
+                            🎨
+                        {% elif category.name == 'study' %}
+                            📚
+                        {% elif category.name == 'streaming' %}
+                            📹
+                        {% endif %}
+                    </div>
+                    <h3 class="text-xl font-semibold mb-2 text-gray-900 dark:text-white">{{ category.display_name }}</h3>
+                    <p class="text-gray-600 dark:text-gray-400 text-sm">{{ category.description }}</p>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Секция с компьютерами -->
+        <div id="computers-section">
+            {% include 'core/pc_section.html' %}
+        </div>
+    </div>
+
+    <!-- Loading индикатор -->
+    <div id="loading" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div class="bg-white dark:bg-[#28303F] rounded-lg p-6 flex items-center space-x-3 shadow-lg">
+            <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500"></div>
+            <span class="text-gray-900 dark:text-white">Загрузка...</span>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const categoryCards = document.querySelectorAll('.category-card');
+            const computersSection = document.getElementById('computers-section');
+            const loading = document.getElementById('loading');
+
+            categoryCards.forEach(card => {
+                card.addEventListener('click', function() {
+                    const category = this.dataset.category;
+                    
+                    // Обновляем активную карточку
+                    categoryCards.forEach(c => {
+                        c.classList.remove('ring-2', 'ring-blue-500', 'bg-gray-50', 'dark:bg-[#1E242E]');
+                        c.classList.add('bg-white', 'dark:bg-[#28303F]');
+                    });
+                    this.classList.add('ring-2', 'ring-blue-500', 'bg-gray-50', 'dark:bg-[#1E242E]');
+                    this.classList.remove('bg-white', 'dark:bg-[#28303F]');
+                    
+                    // Показываем загрузку
+                    loading.classList.remove('hidden');
+                    
+                    // AJAX запрос
+                    fetch(`${category}/`)
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                computersSection.innerHTML = data.html;
+                                // Добавляем анимацию появления
+                                computersSection.style.opacity = '0';
+                                setTimeout(() => {
+                                    computersSection.style.opacity = '1';
+                                }, 100);
+                            } else {
+                                console.error('Ошибка:', data.error);
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Ошибка запроса:', error);
+                        })
+                        .finally(() => {
+                            loading.classList.add('hidden');
+                        });
+                });
+            });
+        });
+
+        // Функция для загрузки готовой конфигурации в конфигуратор
+        function loadPrebuiltConfig(prebuiltId) {
+            // Проверяем, авторизован ли пользователь
+            {% if not user.is_authenticated %}
+                alert('Для загрузки конфигурации необходимо войти в систему');
+                window.location.href = '/users/login/';
+                return;
+            {% endif %}
+
+            // Показываем загрузку
+            loading.classList.remove('hidden');
+            
+            // Отправляем запрос на загрузку конфигурации
+            fetch('/pcbuilder/api/load-prebuilt/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify({
+                    prebuilt_id: prebuiltId
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Конфигурация загружена! Переходим в конфигуратор...');
+                    window.location.href = '/pcbuilder/';
+                } else {
+                    if (data.redirect) {
+                        window.location.href = data.redirect;
+                    } else {
+                        alert('Ошибка: ' + data.error);
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Ошибка:', error);
+                alert('Произошла ошибка при загрузке конфигурации');
+            })
+            .finally(() => {
+                loading.classList.add('hidden');
+            });
+        }
+
+        // Функция для получения CSRF токена
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+    </script>
+
+    <style>
+        #computers-section {
+            transition: opacity 0.3s ease-in-out;
+        }
+    </style>
+{% endblock %}
