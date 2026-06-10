@@ -1,0 +1,8 @@
+{{ object.name }}
+{{ object.description }}
+{{ object.category.name }}
+{{ object.category.slug }}
+{{ object.category.product_line.name }}
+{% for spec in object.specs.all %}
+{{ spec.specification.name }} {{ spec.value }}
+{% endfor %}

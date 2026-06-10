@@ -6,12 +6,31 @@
         </a>
         <!-- Навигация -->
         <nav class="hidden lg:flex gap-8 text-lg font-medium">
-            <a href="{% url 'core:computer_catalog' %}" class="text-gray-900 dark:text-white ">Компьютеры</a>
-            <a href="{% url 'pcbuilder:pcbuilder' %}" class="text-gray-900 dark:text-white">Конфигуратор</a>
-            <a href="{% url 'store:catalog' %}" class="text-gray-900 dark:text-white ">Каталог</a>
-            <a href="{% url 'core:about' %}" class="text-gray-900 dark:text-white ">О нас</a>
-            <a href="{% url 'core:support' %}" class="text-gray-900 dark:text-white ">Поддержка</a>
+            <a href="{% url 'core:computer_catalog' %}" class="text-gray-900 dark:text-white hover:text-[#7a85ff] transition-colors">Компьютеры</a>
+            <a href="{% url 'pcbuilder:pcbuilder' %}" class="text-gray-900 dark:text-white hover:text-[#7a85ff] transition-colors">Конфигуратор</a>
+            <a href="{% url 'store:catalog' %}" class="text-gray-900 dark:text-white hover:text-[#7a85ff] transition-colors">Каталог</a>
+            <a href="{% url 'core:about' %}" class="text-gray-900 dark:text-white hover:text-[#7a85ff] transition-colors">О нас</a>
+            <a href="{% url 'core:support' %}" class="text-gray-900 dark:text-white hover:text-[#7a85ff] transition-colors">Поддержка</a>
+            {% if user.is_authenticated and user.is_seller %}
+            <a href="{% url 'users:seller_dashboard' %}" class="text-gray-900 dark:text-white hover:text-[#7a85ff] transition-colors">Кабинет продавца</a>
+            {% endif %}
         </nav>
+        <!-- Поиск -->
+        <div class="mx-3 lg:mx-5 md:flex relative flex-none" style="width: 260px;">
+            <form action="{% url 'store:search' %}" method="get" class="w-full">
+                <input 
+                    type="text" 
+                    name="q" 
+                    id="search-input"
+                    placeholder="Поиск товаров..." 
+                    class="w-full pl-5 pr-3 py-2 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-[#1a2230] text-sm text-black dark:text-white focus:outline-none focus:ring-2 focus:ring-[#7a85ff] focus:border-transparent transition-all duration-200"
+                    style="padding-left: 18px;"
+                >
+            </form>
+            <!-- Dropdown результатов -->
+            <div id="search-dropdown" class="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-[#28303F] border border-gray-200 dark:border-gray-600 rounded-2xl shadow-2xl max-h-96 overflow-y-auto z-50 hidden">
+            </div>
+        </div>
         <!-- Иконки -->
         <div class="flex items-center gap-4">
             <button id="theme-toggle" class="text-gray-900 dark:text-white">
@@ -65,6 +84,9 @@
             <a href="{% url 'store:catalog' %}" class="text-gray-900 dark:text-white ">Каталог</a>
             <a href="{% url 'core:about' %}" class="text-gray-900 dark:text-white ">О нас</a>
             <a href="{% url 'core:support' %}" class="text-gray-900 dark:text-white ">Поддержка</a>
+            {% if user.is_authenticated and user.is_seller %}
+            <a href="{% url 'users:seller_dashboard' %}" class="text-gray-900 dark:text-white ">Кабинет продавца</a>
+            {% endif %}
         </nav>
     </div>
 </header>
@@ -77,6 +99,69 @@
         if (mobileMenuButton && mobileMenu) {
             mobileMenuButton.addEventListener('click', () => {
                 mobileMenu.classList.toggle('hidden');
+            });
+        }
+
+        // Поиск autocomplete
+        const searchInput = document.getElementById('search-input');
+        const searchDropdown = document.getElementById('search-dropdown');
+        let searchTimeout;
+
+        if (searchInput && searchDropdown) {
+            searchInput.addEventListener('input', () => {
+                const q = searchInput.value.trim();
+                clearTimeout(searchTimeout);
+                searchTimeout = setTimeout(() => {
+                    if (q.length >= 2) {
+                        fetch(`/catalog/api/search/?q=${encodeURIComponent(q)}`, {
+                            headers: {
+                                'X-Requested-With': 'XMLHttpRequest',
+                            }
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            let html = '';
+                            if (data.products && data.products.length > 0) {
+                                data.products.forEach(product => {
+                                    const img = product.image ? `<img src="${product.image}" alt="${product.name}" class="w-12 h-12 object-cover rounded-lg mr-3">` : '';
+                                    html += `
+                                        <a href="/catalog/${product.product_line_slug}/${product.category_slug}/${product.slug}/" class="flex items-center p-4 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors border-b border-gray-100 dark:border-gray-700 last:border-b-0">
+                                            ${img}
+                                            <div>
+                                                <div class="font-semibold text-gray-900 dark:text-white">${product.name}</div>
+                                                <div class="text-sm text-gray-500 dark:text-gray-400">${product.formatted_price}</div>
+                                            </div>
+                                        </a>
+                                    `;
+                                });
+                                const searchUrl = '/catalog/search/?q=' + encodeURIComponent(q);
+                                html += `<div class="p-4 text-center border-t border-gray-100 dark:border-gray-700"><a href="${searchUrl}" class="text-[#7a85ff] hover:underline font-medium">Показать все результаты</a></div>`;
+                            } else {
+                                html = '<div class="p-4 text-gray-500 dark:text-gray-400 text-center">Ничего не найдено</div>';
+                            }
+                            searchDropdown.innerHTML = html;
+                            searchDropdown.classList.remove('hidden');
+                        }).catch(error => {
+                            console.error('Autocomplete error:', error);
+                            searchDropdown.innerHTML = '<div class="p-4 text-gray-500 text-center">Ошибка поиска</div>';
+                            searchDropdown.classList.remove('hidden');
+                        });
+                    } else {
+                        searchDropdown.classList.add('hidden');
+                    }
+                }, 300);
+            });
+
+            document.addEventListener('click', (e) => {
+                if (!searchInput.closest('.relative').contains(e.target)) {
+                    searchDropdown.classList.add('hidden');
+                }
+            });
+
+            searchInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    searchInput.form.submit();
+                }
             });
         }
     });

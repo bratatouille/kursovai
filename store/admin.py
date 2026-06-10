@@ -106,18 +106,18 @@ class ProductSpecInline(admin.TabularInline):
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
     list_display = (
-        'name', 'category', 'is_popular', 'price', 'discount', 'final_price_display', 
+        'name', 'seller', 'category', 'is_popular', 'price', 'discount', 'final_price_display',
         'stock', 'stock_status', 'image_preview'
     )
-    list_filter = ('is_popular', 'category', 'discount', 'category__product_line')
-    search_fields = ('name', 'description')
+    list_filter = ('is_popular', 'category', 'discount', 'category__product_line', 'seller')
+    search_fields = ('name', 'description', 'seller__email', 'seller__seller_name')
     prepopulated_fields = {"slug": ("name",)}
     inlines = [ProductImageInline, ProductSpecInline]
     readonly_fields = ('image_preview', 'final_price_display')
     
     fieldsets = (
         ('Основная информация', {
-            'fields': ('name', 'slug', 'category', 'is_popular', 'description')
+            'fields': ('name', 'slug', 'seller', 'category', 'is_popular', 'description')
         }),
         ('Цена и скидки', {
             'fields': ('price', 'discount')

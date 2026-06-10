@@ -3,6 +3,8 @@ from .models import ProductLine, Category, Product, Specification, ProductSpec
 from collections import defaultdict
 from decimal import Decimal
 from django.urls import reverse
+from django.http import JsonResponse
+from .search_engine import search_products
 # Create your views here.
 def index(request):
     return render(request, 'store/index.html')
@@ -131,4 +133,38 @@ def product_line_detail(request, product_line_slug):
         'product_line': product_line,
         'categories': categories,
         'products': products,
+    })
+
+def search_ajax(request):
+    q = request.GET.get('q', '').strip()
+    products = search_products(q, limit=5) if q else []
+    data = []
+    for p in products:
+        data.append({
+            'id': p.id,
+            'name': p.name,
+            'slug': p.slug,
+            'category_slug': p.category.slug,
+            'product_line_slug': p.category.product_line.slug,
+            'image': p.image.url if p.image else '',
+            'final_price': str(p.final_price),
+            'formatted_price': p.formatted_price(),
+        })
+    return JsonResponse({'products': data})
+
+def search_results(request):
+    q = request.GET.get('q', '').strip()
+    products = search_products(q) if q else Product.objects.none()
+    
+    cart_product_ids = []
+    wishlist_product_ids = []
+    if request.user.is_authenticated:
+        cart_product_ids = list(request.user.cart_items.values_list('product_id', flat=True))
+        wishlist_product_ids = list(request.user.favorite_items.values_list('product_id', flat=True))
+    
+    return render(request, 'store/search.html', {
+        'products': products,
+        'query': q,
+        'cart_product_ids': cart_product_ids,
+        'wishlist_product_ids': wishlist_product_ids,
     })

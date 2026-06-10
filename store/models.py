@@ -3,6 +3,7 @@ from django.core.validators import MinValueValidator
 from django.utils.text import slugify
 from decimal import Decimal
 from django.core.exceptions import ValidationError
+from django.conf import settings
 
 # Create your models here.
 
@@ -90,6 +91,14 @@ class Specification(models.Model):
 
 class Product(models.Model):
     """Товары"""
+    seller = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        related_name='seller_products',
+        verbose_name='Продавец',
+        null=True,
+        blank=True,
+    )
     category = models.ForeignKey(
         Category,
         on_delete=models.PROTECT,

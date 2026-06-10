@@ -8,6 +8,27 @@ from cart.models import CartItem, CartPromoCode
 from store.models import PromoCode, PromoCodeUsage
 from .models import Order, OrderItem, OrderStatusHistory
 from decimal import Decimal
+from django.db.models import Sum
+from store.models import Product
+
+
+POPULAR_PRODUCT_THRESHOLD = 20
+
+
+def refresh_products_popularity(product_ids):
+    """Обновляет флаг популярности по количеству проданных единиц товара."""
+    if not product_ids:
+        return
+
+    for product in Product.objects.filter(id__in=product_ids):
+        sold_qty = (
+            OrderItem.objects.filter(product=product)
+            .exclude(order__status='cancelled')
+            .aggregate(total=Sum('quantity'))
+            .get('total') or 0
+        )
+        product.is_popular = sold_qty > POPULAR_PRODUCT_THRESHOLD
+        product.save(update_fields=['is_popular'])
 
 @login_required
 def checkout(request):
@@ -136,6 +157,7 @@ def create_order(request):
             )
             
             # Создаем товары заказа
+            affected_product_ids = set()
             for cart_item in cart_items:
                 OrderItem.objects.create(
                     order=order,
@@ -144,11 +166,15 @@ def create_order(request):
                     product_price=cart_item.product.final_price,
                     quantity=cart_item.quantity,
                 )
+                affected_product_ids.add(cart_item.product_id)
                 
                 # Уменьшаем количество товара на складе
                 if hasattr(cart_item.product, 'stock'):
                     cart_item.product.stock = max(0, cart_item.product.stock - cart_item.quantity)
                     cart_item.product.save()
+
+            # Пересчитываем популярность купленных товаров
+            refresh_products_popularity(affected_product_ids)
             
             # Записываем использование промокода
             if applied_promocode:
@@ -233,6 +259,8 @@ def cancel_order(request, order_id):
         return JsonResponse({'success': False, 'error': 'Заказ уже нельзя отменить.'}, status=400)
     order.status = 'cancelled'
     order.save()
+    affected_product_ids = list(order.items.values_list('product_id', flat=True))
+    refresh_products_popularity(affected_product_ids)
     OrderStatusHistory.objects.create(
         order=order,
         status='cancelled',

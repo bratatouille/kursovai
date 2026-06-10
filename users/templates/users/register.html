@@ -84,6 +84,37 @@
             </div>
 
             <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Тип аккаунта
+                </label>
+                <div class="flex gap-6">
+                    <label class="inline-flex items-center text-sm text-gray-700 dark:text-gray-300">
+                        <input type="radio" name="account_type" value="buyer" checked class="mr-2">
+                        Покупатель
+                    </label>
+                    <label class="inline-flex items-center text-sm text-gray-700 dark:text-gray-300">
+                        <input type="radio" name="account_type" value="seller" class="mr-2">
+                        Продавец
+                    </label>
+                </div>
+            </div>
+
+            <div id="seller-name-wrapper" class="hidden">
+                <label for="id_seller_name" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Название магазина
+                </label>
+                <div class="mt-1">
+                    <input type="text" name="seller_name" id="id_seller_name"
+                        class="appearance-none block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm placeholder-gray-400
+                        focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-[#1E242E] dark:text-white"
+                        placeholder="Например, Tech Parts Pro">
+                    {% if form.seller_name.errors %}
+                        <p class="text-red-500 text-xs mt-1">{{ form.seller_name.errors }}</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div>
                 <label for="id_password1" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
                     Пароль
                 </label>
@@ -163,5 +194,19 @@ function togglePassword(inputId) {
         eyeIcon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268-2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />`;
     }
 }
+
+function toggleSellerNameVisibility() {
+    const selected = document.querySelector('input[name="account_type"]:checked');
+    const wrapper = document.getElementById('seller-name-wrapper');
+    if (!selected || !wrapper) return;
+    wrapper.classList.toggle('hidden', selected.value !== 'seller');
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('input[name="account_type"]').forEach((el) => {
+        el.addEventListener('change', toggleSellerNameVisibility);
+    });
+    toggleSellerNameVisibility();
+});
 </script>
 {% endblock %} 

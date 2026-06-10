@@ -35,6 +35,8 @@ class CustomUser(AbstractUser):
     delivery_house = models.CharField(_('house'), max_length=20, blank=True)
     delivery_apartment = models.CharField(_('apartment'), max_length=20, blank=True)
     delivery_postal_code = models.CharField(_('postal code'), max_length=20, blank=True)
+    is_seller = models.BooleanField(_('seller account'), default=False)
+    seller_name = models.CharField(_('seller store name'), max_length=150, blank=True)
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['phone', 'first_name', 'last_name']

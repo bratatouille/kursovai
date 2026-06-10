@@ -30,6 +30,9 @@
                         <button onclick="showSection('configurations')" class="menu-item block w-full px-4 py-2 text-left rounded-md hover:bg-gray-100 dark:hover:bg-[#1E242E] text-gray-700 dark:text-gray-300" data-section="configurations">
                             Мои конфигурации
                         </button>
+                        <button onclick="showSection('seller-tools')" class="menu-item block w-full px-4 py-2 text-left rounded-md hover:bg-gray-100 dark:hover:bg-[#1E242E] text-gray-700 dark:text-gray-300" data-section="seller-tools">
+                            {% if user.is_seller %}Кабинет продавца{% else %}Стать продавцом{% endif %}
+                        </button>
                     </nav>
 
                     <div class="mt-6">
@@ -181,7 +184,44 @@
                                 </a>
                             </div>
                         </div>
-                    </div>                </div>
+                    </div>
+
+                    <div id="seller-tools" class="section-content hidden">
+                        {% if user.is_seller %}
+                            <h3 class="text-xl font-semibold dark:text-white mb-4">Кабинет продавца</h3>
+                            <div class="mb-6 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
+                                <p class="text-sm text-gray-600 dark:text-gray-400 mb-3">
+                                    Управление товарами и публикация доступны на отдельной странице кабинета продавца.
+                                </p>
+                                <a href="{% url 'users:seller_dashboard' %}" class="inline-flex px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
+                                    Перейти в кабинет продавца
+                                </a>
+                            </div>
+                            <div id="seller-loading" class="text-center py-4 text-gray-500 dark:text-gray-400">
+                                Загрузка данных продавца...
+                            </div>
+                            <div id="seller-content" class="hidden space-y-4"></div>
+                        {% else %}
+                            <h3 class="text-xl font-semibold dark:text-white mb-4">Регистрация продавца</h3>
+                            <p class="text-gray-600 dark:text-gray-400 mb-4">
+                                После подключения роли продавца вы сможете вести собственный ассортимент в маркетплейсе.
+                            </p>
+                            <form method="post" action="{% url 'users:become_seller' %}" class="space-y-4">
+                                {% csrf_token %}
+                                <div>
+                                    <label for="id_seller_name" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                        Название магазина
+                                    </label>
+                                    <input type="text" name="seller_name" id="id_seller_name" required
+                                           class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-[#1E242E] dark:text-white">
+                                </div>
+                                <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
+                                    Подключить продавца
+                                </button>
+                            </form>
+                        {% endif %}
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -214,6 +254,88 @@ function showSection(sectionId) {
         loadPromocodes();
     } else if (sectionId === 'order-history') {
         loadOrders();  // Добавляем загрузку заказов
+    } else if (sectionId === 'seller-tools') {
+        loadSellerDashboard();
+    }
+}
+
+async function loadSellerDashboard() {
+    const loading = document.getElementById('seller-loading');
+    const content = document.getElementById('seller-content');
+    if (!loading || !content) return;
+
+    try {
+        const response = await fetch('/users/api/seller/dashboard/');
+        const data = await response.json();
+        loading.classList.add('hidden');
+
+        if (!data.success) {
+            content.classList.remove('hidden');
+            content.innerHTML = `<div class="text-red-500">${data.error || 'Не удалось загрузить кабинет продавца.'}</div>`;
+            return;
+        }
+
+        const stats = data.stats || {};
+        const products = data.products || [];
+        const orders = data.recent_orders || [];
+
+        content.classList.remove('hidden');
+        content.innerHTML = `
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="p-4 rounded-lg bg-gray-50 dark:bg-[#1E242E]">
+                    <p class="text-sm text-gray-500 dark:text-gray-400">Товаров</p>
+                    <p class="text-2xl font-bold dark:text-white">${stats.products_count ?? 0}</p>
+                </div>
+                <div class="p-4 rounded-lg bg-gray-50 dark:bg-[#1E242E]">
+                    <p class="text-sm text-gray-500 dark:text-gray-400">Заказов</p>
+                    <p class="text-2xl font-bold dark:text-white">${stats.orders_count ?? 0}</p>
+                </div>
+                <div class="p-4 rounded-lg bg-gray-50 dark:bg-[#1E242E]">
+                    <p class="text-sm text-gray-500 dark:text-gray-400">Выручка (последние заказы)</p>
+                    <p class="text-2xl font-bold dark:text-white">${formatPrice(stats.revenue ?? 0)} ₽</p>
+                </div>
+            </div>
+            <div class="rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
+                <div class="p-4 font-semibold dark:text-white">Мои товары</div>
+                <div class="divide-y divide-gray-200 dark:divide-gray-700">
+                    ${products.length ? products.map(p => `
+                        <div class="p-4 flex justify-between gap-2">
+                            <div>
+                                <p class="font-medium dark:text-white">${p.name}</p>
+                                <p class="text-sm text-gray-500 dark:text-gray-400">${p.category}</p>
+                            </div>
+                            <div class="text-right">
+                                <p class="dark:text-white">${formatPrice(p.price)} ₽</p>
+                                <p class="text-sm ${p.is_in_stock ? 'text-green-600' : 'text-red-500'}">
+                                    Остаток: ${p.stock}
+                                </p>
+                            </div>
+                        </div>
+                    `).join('') : '<div class="p-4 text-gray-500 dark:text-gray-400">Пока нет товаров</div>'}
+                </div>
+            </div>
+            <div class="rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
+                <div class="p-4 font-semibold dark:text-white">Последние заказы по вашим товарам</div>
+                <div class="divide-y divide-gray-200 dark:divide-gray-700">
+                    ${orders.length ? orders.map(o => `
+                        <div class="p-4 flex justify-between">
+                            <div>
+                                <p class="font-medium dark:text-white">Заказ №${o.order_number}</p>
+                                <p class="text-sm text-gray-500 dark:text-gray-400">${o.created_at}</p>
+                            </div>
+                            <div class="text-right">
+                                <p class="dark:text-white">${formatPrice(o.seller_total)} ₽</p>
+                                <p class="text-sm text-gray-500 dark:text-gray-400">${o.status}</p>
+                            </div>
+                        </div>
+                    `).join('') : '<div class="p-4 text-gray-500 dark:text-gray-400">Пока нет заказов</div>'}
+                </div>
+            </div>
+        `;
+    } catch (e) {
+        loading.classList.add('hidden');
+        content.classList.remove('hidden');
+        content.innerHTML = '<div class="text-red-500">Ошибка загрузки кабинета продавца.</div>';
     }
 }
 
@@ -897,6 +1019,7 @@ document.addEventListener('DOMContentLoaded', function() {
             showSection(targetSectionId);
         });
     });
+
 });
 </script>
 {% endblock %}

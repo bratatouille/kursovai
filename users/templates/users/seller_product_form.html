@@ -1,0 +1,227 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8 max-w-4xl">
+    <div class="mb-6">
+        <a href="{% url 'users:seller_dashboard' %}" class="text-blue-600 hover:text-blue-700 text-sm">← Вернуться в кабинет продавца</a>
+        <h1 class="text-2xl font-bold text-gray-900 dark:text-white mt-2">
+            {% if product %}Редактирование товара{% else %}Новый товар{% endif %}
+        </h1>
+    </div>
+
+    <form method="post" enctype="multipart/form-data" class="bg-white dark:bg-[#28303F] rounded-lg shadow p-6 space-y-6">
+        {% csrf_token %}
+
+        {% if form.errors %}
+            <div class="rounded-md bg-red-50 border border-red-200 p-4 text-sm text-red-700">
+                Проверьте заполнение формы.
+            </div>
+        {% endif %}
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="md:col-span-2">
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Название</label>
+                {{ form.name }}
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Категория</label>
+                {{ form.category }}
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Цена</label>
+                {{ form.price }}
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Скидка (%)</label>
+                {{ form.discount }}
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Остаток</label>
+                {{ form.stock }}
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Минимальный остаток</label>
+                {{ form.min_stock }}
+            </div>
+        </div>
+
+        <div>
+            <label class="inline-flex items-center text-sm text-gray-700 dark:text-gray-300">
+                {{ form.is_popular }}
+                <span class="ml-2">Показывать как популярный</span>
+            </label>
+        </div>
+
+        <div>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Описание</label>
+            {{ form.description }}
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Главное фото</label>
+                <input id="main-image-input" type="file" name="image" accept="image/*" class="hidden">
+                <button type="button" id="main-image-btn" class="cursor-pointer px-3 py-2 bg-gray-100 dark:bg-[#1E242E] border border-gray-300 dark:border-gray-600 rounded-md text-sm">
+                    Выбрать главное фото
+                </button>
+                <p id="main-image-name" class="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                    {% if product and product.image %}Текущее фото: {{ product.image.name }}{% else %}Файл не выбран{% endif %}
+                </p>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Галерея (можно несколько)</label>
+                <input id="gallery-images-input" type="file" name="gallery_images" accept="image/*" multiple class="hidden">
+                <button type="button" id="gallery-images-btn" class="cursor-pointer px-3 py-2 bg-gray-100 dark:bg-[#1E242E] border border-gray-300 dark:border-gray-600 rounded-md text-sm">
+                    Выбрать фото для карусели
+                </button>
+                <p id="gallery-images-summary" class="mt-2 text-xs text-gray-500 dark:text-gray-400">Файлы не выбраны</p>
+                <ul id="gallery-images-list" class="mt-2 space-y-1 text-xs text-gray-600 dark:text-gray-300"></ul>
+            </div>
+        </div>
+        {% if product and existing_gallery %}
+            <div class="rounded-md border border-gray-200 dark:border-gray-700 p-4">
+                <h3 class="text-sm font-semibold text-gray-900 dark:text-white mb-2">Текущие фото в карусели</h3>
+                <div class="space-y-2">
+                    {% for image in existing_gallery %}
+                        <label class="flex items-center justify-between text-sm text-gray-700 dark:text-gray-300">
+                            <span>{{ image.image.name }}</span>
+                            <span class="inline-flex items-center gap-2">
+                                <input type="checkbox" name="remove_gallery_image_ids" value="{{ image.id }}" class="h-4 w-4">
+                                Удалить
+                            </span>
+                        </label>
+                    {% endfor %}
+                </div>
+            </div>
+        {% endif %}
+
+        <div>
+            <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">Характеристики</h2>
+            <p class="text-sm text-gray-500 dark:text-gray-400 mb-3">Выберите категорию, и поля характеристик появятся автоматически.</p>
+            <div id="spec-fields" class="grid grid-cols-1 md:grid-cols-2 gap-3"></div>
+        </div>
+
+        <div class="pt-2">
+            <button type="submit" class="cursor-pointer px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
+                {% if product %}Сохранить изменения{% else %}Опубликовать товар{% endif %}
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{{ existing_specs|json_script:"existing-specs-json" }}
+<script>
+const existingSpecs = JSON.parse(document.getElementById('existing-specs-json').textContent || '{}');
+
+async function loadSpecifications() {
+    const categorySelect = document.getElementById('id_category');
+    const container = document.getElementById('spec-fields');
+    if (!categorySelect || !container) return;
+
+    const categoryId = categorySelect.value;
+    if (!categoryId) {
+        container.innerHTML = '';
+        return;
+    }
+
+    const response = await fetch(`/users/api/seller/specifications/?category_id=${categoryId}`);
+    const data = await response.json();
+    if (!data.success) {
+        container.innerHTML = '<p class="text-sm text-red-500">Не удалось загрузить характеристики.</p>';
+        return;
+    }
+
+    if (!data.specifications.length) {
+        container.innerHTML = '<p class="text-sm text-gray-500 dark:text-gray-400">Для этой категории нет характеристик.</p>';
+        return;
+    }
+
+    container.innerHTML = data.specifications.map((spec) => `
+        <div>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                ${spec.name}${spec.unit ? ` (${spec.unit})` : ''}
+            </label>
+            <input type="text" name="spec_${spec.id}" value="${existingSpecs[spec.id] || ''}" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-[#1E242E] dark:text-white">
+        </div>
+    `).join('');
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    const categorySelect = document.getElementById('id_category');
+    if (categorySelect) {
+        categorySelect.addEventListener('change', loadSpecifications);
+        loadSpecifications();
+    }
+
+    const mainImageInput = document.getElementById('main-image-input');
+    const mainImageBtn = document.getElementById('main-image-btn');
+    const mainImageName = document.getElementById('main-image-name');
+    if (mainImageInput && mainImageBtn && mainImageName) {
+        mainImageBtn.addEventListener('click', () => mainImageInput.click());
+        mainImageInput.addEventListener('change', () => {
+            mainImageName.textContent = mainImageInput.files.length
+                ? `Выбран файл: ${mainImageInput.files[0].name}`
+                : 'Файл не выбран';
+        });
+    }
+
+    const galleryInput = document.getElementById('gallery-images-input');
+    const galleryBtn = document.getElementById('gallery-images-btn');
+    const gallerySummary = document.getElementById('gallery-images-summary');
+    const galleryList = document.getElementById('gallery-images-list');
+    if (galleryInput && galleryBtn && gallerySummary && galleryList) {
+        const selectedGalleryFiles = [];
+
+        function syncGalleryInputFiles() {
+            const dataTransfer = new DataTransfer();
+            selectedGalleryFiles.forEach((file) => dataTransfer.items.add(file));
+            galleryInput.files = dataTransfer.files;
+        }
+
+        function renderGalleryFiles() {
+            if (!selectedGalleryFiles.length) {
+                gallerySummary.textContent = 'Файлы не выбраны';
+                galleryList.innerHTML = '';
+                return;
+            }
+
+            gallerySummary.textContent = `Выбрано фото: ${selectedGalleryFiles.length}`;
+            galleryList.innerHTML = selectedGalleryFiles
+                .map((file, index) => `
+                    <li class="flex items-center justify-between gap-2">
+                        <span>• ${file.name}</span>
+                        <button type="button" data-remove-index="${index}" class="cursor-pointer text-red-500 hover:text-red-600">
+                            Удалить
+                        </button>
+                    </li>
+                `)
+                .join('');
+        }
+
+        galleryBtn.addEventListener('click', () => galleryInput.click());
+        galleryInput.addEventListener('change', () => {
+            const newlySelected = Array.from(galleryInput.files || []);
+            if (!newlySelected.length) {
+                return;
+            }
+
+            selectedGalleryFiles.push(...newlySelected);
+            syncGalleryInputFiles();
+            renderGalleryFiles();
+        });
+
+        galleryList.addEventListener('click', (event) => {
+            const target = event.target;
+            const removeIndex = target.getAttribute('data-remove-index');
+            if (removeIndex === null) return;
+
+            selectedGalleryFiles.splice(Number(removeIndex), 1);
+            syncGalleryInputFiles();
+            renderGalleryFiles();
+        });
+    }
+});
+</script>
+{% endblock %}

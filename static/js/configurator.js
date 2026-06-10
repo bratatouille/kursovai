@@ -45,7 +45,6 @@ let currentFilters = [];
 let currentCategoryId = null;
 
 // Глобальная переменная для состояния чекбокса совместимости
-let compatibleOnlyByCategory = {};
 
 // Загрузка категорий с иконками
 async function loadCategories() {
@@ -130,20 +129,6 @@ function updateFilterSelects() {
   document.getElementById('filter-2-label').textContent = 'Фильтр 2';
   
   // Добавляем чекбокс совместимости, если ещё не добавлен
-  if (!document.getElementById('compatibility-checkbox')) {
-    const clearBtn = document.getElementById('clear-filters');
-    const compatDiv = document.createElement('div');
-    compatDiv.className = 'flex items-center gap-2 ml-4';
-    compatDiv.innerHTML = `<input type="checkbox" id="compatibility-checkbox">
-      <label for="compatibility-checkbox" class="text-sm text-gray-700 dark:text-gray-300 select-none cursor-pointer">Показывать только совместимые</label>`;
-    clearBtn.parentNode.appendChild(compatDiv);
-    document.getElementById('compatibility-checkbox').onchange = (e) => {
-      compatibleOnlyByCategory[currentCategoryId] = e.target.checked;
-      loadProducts();
-    };
-  }
-  document.getElementById('compatibility-checkbox').checked = !!compatibleOnlyByCategory[currentCategoryId];
-  
   // Заполняем оба фильтра доступными спецификациями
   currentFilters.forEach(filter => {
     const option1 = document.createElement('option');
@@ -282,9 +267,7 @@ function loadProducts() {
   }
   
   // Если включён фильтр совместимости (чекбокс) для этой категории
-  if (compatibleOnlyByCategory[currentCategoryId]) {
-    url += `&compatible_only=1`;
-  }
+  url += `&compatible_only=1`;
   
   fetch(url)
     .then(response => response.json())
