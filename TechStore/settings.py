@@ -25,10 +25,10 @@ SECRET_KEY = 'django-insecure-cm@-da8=3-$03@5t)-pxxxcx87)0lu)tj*+!kap2z#ix^qg(e1
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['diplom-vgw4.onrender.com', 'localhost', '127.0.0.1']
+ALLOWED_HOSTS = ['diplom-vgw4.onrender.com', 'localhost', '127.0.0.1', 'kursovai-1.onrender.com']
 
 CSRF_TRUSTED_ORIGINS = [
-    'https://diplom-vgw4.onrender.com'
+    'https://kursovai-1.onrender.com'
 ]
 
 
